@@ -3,9 +3,12 @@ import express from 'express'
 import exitHook from 'async-exit-hook'
 import { CONNECT_DB, CLOSE_DB } from './config/mongodb'
 import { env } from '~/config/environment'
+import { APIs_V1 } from '~/routes/v1'
 
 const START_SERVER = () => {
   const app = express()
+
+  app.use('/v1', APIs_V1)
 
   app.get('/', async (req, res) => {
     res.end('<h1>Hello World!</h1><hr>')
@@ -34,12 +37,3 @@ const START_SERVER = () => {
     process.exit(0)
   }
 })()
-
-// console.log('1. Connecting to MongoDB Cloud Atlas...')
-// CONNECT_DB()
-//   .then(() => console.log('2. Connected to MongoDB Cloud Atlas!'))
-//   .then(() => START_SERVER())
-//   .catch(error => {
-//     console.error(error)
-//     process.exit(0)
-//   })
