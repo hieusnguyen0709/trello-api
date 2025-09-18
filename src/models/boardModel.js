@@ -99,8 +99,6 @@ const update = async (boardId, updateData) => {
             }
         })
 
-        console.log('updateData: ', updateData)
-
         const result = await GET_DB().collection(BOARD_COLLECTION_NAME).findOneAndUpdate(
             { _id: new ObjectId(boardId) },
             { $set: updateData },
