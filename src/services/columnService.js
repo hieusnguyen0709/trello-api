@@ -1,7 +1,6 @@
 import { columnModel } from '~/models/columnModel'
 import { boardModel } from '~/models/boardModel'
 
-
 const createNew = async (reqBody) => {
     try {
         const newColumn = {
