@@ -70,6 +70,10 @@ const update = async (columnId, updateData) => {
         }
       })
 
+      if (updateData.cardOrderIds) {
+        updateData.cardOrderIds = updateData.cardOrderIds.map(_id => (new ObjectId(_id)))
+      }
+
       const result = await GET_DB().collection(COLUMN_COLLECTION_NAME).findOneAndUpdate(
         { _id: new ObjectId(columnId) },
         { $set: updateData },
