@@ -27,9 +27,17 @@ const START_SERVER = () => {
     res.end('<h1>Hello World!</h1><hr>')
   })
 
-  app.listen(env.APP_PORT, env.APP_HOST, () => {
-    console.log(`3. Hello ${env.AUTHOR} - Back-end Server is running successfully at ${ env.APP_HOST }:${ env.APP_PORT }/`)
-  })
+  if (env.BUILD_MODE === 'production') {
+    // Render.com
+    app.listen(process.env.PORT, () => {
+      console.log(`3. Production: Hello ${env.AUTHOR} - Back-end Server is running successfully at Port: ${ process.env.PORT }`)
+    })
+  } else {
+    // Local Dev
+    app.listen(env.APP_PORT, env.APP_HOST, () => {
+      console.log(`3. Local Dev: Hello ${env.AUTHOR} - Back-end Server is running successfully at ${ env.APP_HOST }:${ env.APP_PORT }/`)
+    })
+  }
 
   exitHook(() => {
     console.log('4. Disconnecting from MongoDB Cloud Atlas...')
