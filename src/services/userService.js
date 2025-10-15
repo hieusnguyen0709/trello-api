@@ -82,6 +82,7 @@ const login = async (reqBody) => {
         const accessToken = await JwtProvider.generateToken(
             userInfo,
             env.ACCESS_TOKEN_SECRET_SIGNATURE,
+            // 5 // 5 seconds
             env.ACCESS_TOKEN_LIFE
         )
 
