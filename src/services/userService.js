@@ -99,8 +99,38 @@ const login = async (reqBody) => {
     }
 }
 
+const refreshToken = async (clientRefreshToken) => {
+  try {
+    // Verify / giải mã cái refresh token xem có hợp lệ không
+    const refreshTokenDecoded = await JwtProvider.verifyToken(
+        clientRefreshToken, 
+        env.REFRESH_TOKEN_SECRET_SIGNATURE
+    )
+    console.log(refreshTokenDecoded)
+
+    // Đoạn này vì chúng ta chỉ lưu những thông tin unique và cố định của user trong token rồi,
+    // vì vậy có thể lấy luôn từ decoded ra, tiết kiệm query vào DB để lấy data thêm.
+    const userInfo = {
+      _id: refreshTokenDecoded._id,
+      email: refreshTokenDecoded.email
+    }
+
+    // Tạo accessToken mới
+    const accessToken = await JwtProvider.generateToken(
+      userInfo,
+      env.ACCESS_TOKEN_SECRET_SIGNATURE,
+      // 5s / 5 giây để test accessToken hết hạn
+      env.ACCESS_TOKEN_LIFE // 1 tiếng
+    )
+
+    return { accessToken }
+  } catch (error) { throw error }
+}
+
+
 export const userService = {
     createNew,
     verifyAccount,
-    login
+    login,
+    refreshToken
 }
