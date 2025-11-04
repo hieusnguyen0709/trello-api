@@ -8,7 +8,7 @@ import { WEBSITE_DOMAIN } from '~/utils/constants'
 import { BrevoProvider } from '~/providers/BrevoProvider'
 import { env } from '~/config/environment'
 import { JwtProvider } from '~/providers/JWTProvider'
-import { exist } from 'joi'
+import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
 
 const createNew = async (reqBody) => {
     try {
@@ -128,7 +128,7 @@ const refreshToken = async (clientRefreshToken) => {
   } catch (error) { throw error }
 }
 
-const update = async (userId, reqBody) => {
+const update = async (userId, reqBody, userAvatarFile) => {
     try {
         const existUser = await userModel.findOneById(userId)
         if (!existUser) throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
@@ -144,7 +144,17 @@ const update = async (userId, reqBody) => {
             updatedUser = await userModel.update(existUser._id, {
                 password: bcryptjs.hashSync(reqBody.new_password, 8)
             })
+        } else if (userAvatarFile) {
+            // Upload avatar lên Cloud Storage, cụ thể là Cloudiary
+            const uploadResult = await CloudinaryProvider.streamUpload(userAvatarFile.buffer, 'users')
+            // console.log('uploadResult: ', uploadResult)
+
+            // Lưu lại url (secure_url) của file ảnh vào trong DB
+            updatedUser = await userModel.update(existUser._id, {
+                avatar: uploadResult.secure_url
+            })
         } else {
+            // Update info
             updatedUser = await userModel.update(existUser._id, reqBody)
         }
 
