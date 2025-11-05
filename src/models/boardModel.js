@@ -5,6 +5,7 @@ import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { BOARD_TYPES } from '~/utils/constants'
 import { columnModel } from '~/models/columnModel'
 import { cardModel } from '~/models/cardModel'
+import { pagingSkipValue } from '~/utils/algorithms'
 
 // Define Collection (Name & Schema)
 const BOARD_COLLECTION_NAME = 'boards'
@@ -16,6 +17,14 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
 
     // Lưu ý các item trong mảng columnOrderIds là ObjectId nên cần thêm pattern cho chuẩn
     columnOrderIds: Joi.array().items(
+        Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+    ).default([]),
+
+    ownerIds: Joi.array().items(
+        Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+    ).default([]),
+
+    memberIds: Joi.array().items(
         Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
     ).default([]),
 
@@ -129,6 +138,49 @@ const update = async (boardId, updateData) => {
     }
 }
 
+const getBoards = async (userId, page, itemsPerPage) => {
+    try {
+       const queryConditions = [
+        // 1. Chưa bị xóa
+        { _destroy: false },
+        // 2. userId phải thuộc 1 trong 2 mảng ownerIds hoặc memberIds
+        { $or: [
+            { ownerIds: { $all: [new ObjectId(userId)] } },
+            { memberIds: { $all: [new ObjectId(userId)] } }
+        ] }
+       ]
+
+       const query = await GET_DB().collection(BOARD_COLLECTION_NAME).aggregate(
+            [
+                { $match: { $and: queryConditions } },
+                // Sort title của board theo A-Z (mặc định sẽ bị chữ B hoa đứng trước chữ a thường theo chuẩn bảng mã ASCII)
+                { $sort: { title: 1 } },
+                // $facet để xử lý nhiều luồng trong một query
+                { $facet: {
+                    'queryBoards': [
+                        { $skip: pagingSkipValue(page, itemsPerPage) }, // Bỏ qua số lượng bản ghi của những page trước đó
+                        { $limit: itemsPerPage } // Giới hạn tối đa số lượng bản ghi trả về trên một page
+                    ],
+                    'queryTotalBoards': [{ $count: 'countedAllBoards' }]
+                } }
+            ],
+            // Khai báo thêm thuộc tính collation locale 'en' để fix vụ chữ B hoa và a thường ở trên
+            { collation: { locale: 'en' } }
+        ).toArray()
+        // console.log('query: ', query)
+
+        const res = query[0]
+
+        return {
+            boards: res.queryBoards || [],
+            totalBoards: res.queryTotalBoards[0]?.countedAllBoards || 0
+        }
+
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
 export const boardModel = {
     BOARD_COLLECTION_NAME,
     BOARD_COLLECTION_SCHEMA,
@@ -137,5 +189,6 @@ export const boardModel = {
     getDetails,
     pushColumnOrderIds,
     pullColumnOrderIds,
-    update
+    update,
+    getBoards
 }
