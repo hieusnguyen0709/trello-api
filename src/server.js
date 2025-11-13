@@ -8,6 +8,9 @@ import { env } from '~/config/environment'
 import { APIs_V1 } from '~/routes/v1'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
 import cookieParser from 'cookie-parser'
+import http from 'http'
+import socketIo from 'socket.io'
+import { inviteUserToBoardSocket } from './sockets/inviteUserToBoardSocket'
 
 const START_SERVER = () => {
   const app = express()
@@ -33,18 +36,31 @@ const START_SERVER = () => {
   // Middleware
   app.use(errorHandlingMiddleware)
 
+  // SocketIo
+  const server = http.createServer(app)
+  // Khởi tạo biến io với server và cors
+  const io = socketIo(server, { cors: corsOptions })
+  io.on('connection', (socket) => {
+    // Gọi các socket tùy theo tính năng
+    inviteUserToBoardSocket(socket)
+
+    /// ...
+  })
+
   app.get('/', async (req, res) => {
     res.end('<h1>Hello World!</h1><hr>')
   })
 
   if (env.BUILD_MODE === 'production') {
     // Render.com
-    app.listen(process.env.PORT, () => {
+    // Dùng server.listen thay vì app.listen vì lúc này server đã bao gồm express app và đã config socket.io
+    server.listen(process.env.PORT, () => {
       console.log(`3. Production: Hello ${env.AUTHOR} - Back-end Server is running successfully at Port: ${ process.env.PORT }`)
     })
   } else {
     // Local Dev
-    app.listen(env.APP_PORT, env.APP_HOST, () => {
+    // Dùng server.listen thay vì app.listen vì lúc này server đã bao gồm express app và đã config socket.io
+    server.listen(env.APP_PORT, env.APP_HOST, () => {
       console.log(`3. Local Dev: Hello ${env.AUTHOR} - Back-end Server is running successfully at ${ env.APP_HOST }:${ env.APP_PORT }/`)
     })
   }
