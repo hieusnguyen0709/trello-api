@@ -20,7 +20,7 @@ const createNew = async (reqBody) => {
     }
 }
 
-const update = async (cardId, reqBody, cardCoverFile, userInfo) => {
+const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userInfo) => {
   try {
     const updateData = {
       ...reqBody,
@@ -32,6 +32,18 @@ const update = async (cardId, reqBody, cardCoverFile, userInfo) => {
     if (cardCoverFile) {
       const uploadResult = await CloudinaryProvider.streamUpload(cardCoverFile.buffer, 'card-covers')
       updatedCard = await cardModel.update(cardId, { cover: uploadResult.secure_url })
+    } else if (cardAttachmentFiles?.length) {
+      const uploadResults = await Promise.all(
+        cardAttachmentFiles.map(cardAttachmentFile =>
+          CloudinaryProvider.streamUpload(
+            cardAttachmentFile.buffer,
+            'card-attachments',
+            { resource_type: 'raw' }
+          )
+        )
+      )
+      const attachments = uploadResults.map(r => r.secure_url)
+      updatedCard = await cardModel.pushAttachments(cardId, attachments)
     } else if (updateData.commentToAdd) {
       // Tạo dữ liệu comment để thêm vào DB, cần bổ sung vào những field cần thiết
       const commentData = {
