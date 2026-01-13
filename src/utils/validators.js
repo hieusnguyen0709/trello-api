@@ -10,3 +10,11 @@ export const PASSWORD_CONFIRMATION_MESSAGE = 'Password Confirmation does not mat
 
 export const LIMIT_COMMON_FILE_SIZE = 10485760 // byte = 10 MB
 export const ALLOW_COMMON_FILE_TYPES = ['image/jpg', 'image/jpeg', 'image/png']
+export const LIMIT_COMMON_ATTACHMENT_FILE_SIZE = 10485760 // byte = 10 MB
+export const ALLOW_COMMON_ATTACHMENT_FILE_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+]
