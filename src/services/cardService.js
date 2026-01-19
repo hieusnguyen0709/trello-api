@@ -1,23 +1,24 @@
 import { cardModel } from '~/models/cardModel'
 import { columnModel } from '~/models/columnModel'
 import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
+import { extractPublicId } from '~/utils/formatters'
 
 const createNew = async (reqBody) => {
-    try {
-        const newCard = {
-            ...reqBody
-        }
-        const createdCard = await cardModel.createNew(newCard)
-        const getNewCard = await cardModel.findOneById(createdCard.insertedId)
-
-        if (getNewCard) {
-            await columnModel.pushCardOrderIds(getNewCard)
-        }
-
-        return getNewCard
-    } catch (error) {
-        throw error
+  try {
+    const newCard = {
+      ...reqBody
     }
+    const createdCard = await cardModel.createNew(newCard)
+    const getNewCard = await cardModel.findOneById(createdCard.insertedId)
+
+    if (getNewCard) {
+      await columnModel.pushCardOrderIds(getNewCard)
+    }
+
+    return getNewCard
+  } catch (error) {
+    throw error
+  }
 }
 
 const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userInfo) => {
@@ -38,14 +39,13 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
           CloudinaryProvider.streamUpload(
             cardAttachmentFile.buffer,
             'card-attachments',
-            { resource_type: 'raw' }
+            { resource_type: 'raw', public_id: cardAttachmentFile.originalname }
           )
         )
       )
       const attachments = uploadResults.map(r => r.secure_url)
       updatedCard = await cardModel.pushAttachments(cardId, attachments)
     } else if (updateData.commentToAdd) {
-      // Tạo dữ liệu comment để thêm vào DB, cần bổ sung vào những field cần thiết
       const commentData = {
         ...updateData.commentToAdd,
         commentedAt: Date.now(),
@@ -54,10 +54,22 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
       }
       updatedCard = await cardModel.unshiftNewComment(cardId, commentData)
     } else if (updateData.incomingMemberInfo) {
-      // ADD hoặc REMOVE thành viên khỏi card
+      // ADD or REMOVE members
       updatedCard = await cardModel.updateMembers(cardId, updateData.incomingMemberInfo)
+    } else if (updateData.cardAttachmentRemove) {
+      // REMOVE attachment
+      const publicId = extractPublicId(updateData.cardAttachmentRemove)
+      if (publicId) {
+        try {
+          await CloudinaryProvider.deleteFile(publicId, 'raw')
+        } catch (err) {
+          throw err
+        }
+      }
+
+      updatedCard = await cardModel.pullAttachment(cardId, updateData.cardAttachmentRemove)
     } else {
-      // Update chung như title, description
+      // Update all
       updatedCard = await cardModel.update(cardId, updateData)
     }
 
