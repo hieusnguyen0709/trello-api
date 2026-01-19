@@ -170,6 +170,22 @@ const pushAttachments = async (cardId, attachments) => {
   }
 }
 
+const pullAttachment = async (cardId, attachment) => {
+  try {
+    const updateCondition = { $pull: { attachments: attachment } }
+
+    const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
+      { _id: new ObjectId(cardId) },
+      updateCondition,
+      { returnDocument: 'after' }
+    )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
@@ -179,5 +195,6 @@ export const cardModel = {
   deleteManyByColumnId,
   unshiftNewComment,
   updateMembers,
-  pushAttachments
+  pushAttachments,
+  pullAttachment
 }

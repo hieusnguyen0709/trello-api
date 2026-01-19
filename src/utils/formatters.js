@@ -16,3 +16,16 @@ export const pickUser = (user) => {
   if (!user) return {}
   return pick(user, ['_id', 'email', 'username', 'displayName', 'avatar', 'role', 'isActive', 'createdAt', 'updatedAt'])
 }
+
+export const extractPublicId = (cloudinaryUrl) => {
+  const decodedUrl = decodeURIComponent(cloudinaryUrl)
+
+  const uploadIndex = decodedUrl.indexOf('/upload/')
+  if (uploadIndex === -1) return null
+
+  const pathAfterUpload = decodedUrl.substring(uploadIndex + 8)
+
+  const publicId = pathAfterUpload.replace(/^v\d+\//, '')
+
+  return publicId
+}
