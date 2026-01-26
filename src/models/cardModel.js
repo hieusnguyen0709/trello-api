@@ -14,6 +14,26 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
   description: Joi.string().optional(),
   cover: Joi.string().default(null),
   attachments: Joi.array().items(Joi.string().default([])),
+  checklist: Joi.array().items(
+    Joi.object({
+      _id: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+      title: Joi.string().required().min(1).max(50).trim().strict(),
+      description: Joi.string().optional(),
+      position: Joi.number().integer().min(0),
+      items: Joi.array().items(
+        Joi.object({
+          _id: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+          title: Joi.string().required().min(1).max(100).trim().strict(),
+          isCompleted: Joi.boolean().default(false),
+          position: Joi.number().integer().min(0),
+          createdAt: Joi.date().timestamp('javascript').default(Date.now)
+        })
+      ).default([]),
+
+      createdAt: Joi.date().timestamp('javascript').default(Date.now),
+      updatedAt: Joi.date().timestamp('javascript').default(null)
+    })
+  ).default([]),
   memberIds: Joi.array().items(
     Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
   ).default([]),
@@ -186,6 +206,106 @@ const pullAttachment = async (cardId, attachment) => {
   }
 }
 
+const createChecklist = async (cardId, checklistData) => {
+  try {
+    const items = [
+      {
+        _id: new ObjectId(),
+        title: 'Item 1',
+        isCompleted: true,
+        position: 1,
+        createdAt: Date.now(),
+        updatedAt: null
+      },
+      {
+        _id: new ObjectId(),
+        title: 'Item 2',
+        isCompleted: false,
+        position: 2,
+        createdAt: Date.now(),
+        updatedAt: null
+      }
+    ]
+
+    const checklist = {
+      _id: new ObjectId(),
+      title: checklistData.title,
+      description: checklistData.description || '',
+      position: checklistData.position || 0,
+      items: items,
+      createdAt: Date.now(),
+      updatedAt: null
+    }
+
+    const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
+      { _id: new ObjectId(cardId) },
+      {
+        $push: {
+          checklist: checklist
+        },
+        $set: {
+          updatedAt: Date.now()
+        }
+      },
+      { returnDocument: 'after' }
+    )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const updateChecklist = async (cardId, checklistId, checklistData) => {
+  try {
+    const updateFields = {}
+
+    if (checklistData.title !== undefined) {
+      updateFields['checklist.$.title'] = checklistData.title
+    }
+
+    if (checklistData.description !== undefined) {
+      updateFields['checklist.$.description'] = checklistData.description
+    }
+
+    updateFields.updatedAt = Date.now()
+
+    const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
+      {
+        _id: new ObjectId(cardId),
+        'checklist._id': new ObjectId(checklistId)
+      },
+      { $set: updateFields },
+      { returnDocument: 'after' }
+    )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const deleteChecklist = async (cardId, checklistId) => {
+  try {
+    const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
+      { _id: new ObjectId(cardId) },
+      {
+        $pull: {
+          checklist: { _id: new ObjectId(checklistId) }
+        },
+        $set: {
+          updatedAt: Date.now()
+        }
+      },
+      { returnDocument: 'after' }
+    )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
@@ -196,5 +316,8 @@ export const cardModel = {
   unshiftNewComment,
   updateMembers,
   pushAttachments,
-  pullAttachment
+  pullAttachment,
+  createChecklist,
+  updateChecklist,
+  deleteChecklist
 }
