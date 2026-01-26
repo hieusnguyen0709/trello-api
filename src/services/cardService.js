@@ -68,6 +68,26 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
       }
 
       updatedCard = await cardModel.pullAttachment(cardId, updateData.cardAttachmentRemove)
+    } else if (updateData.checklistAction) {
+      // ADD|UPDATE|DELETE checklist
+      const { type, checklistId, data } = updateData.checklistAction
+
+      switch (type) {
+        case 'ADD':
+          updatedCard = await cardModel.createChecklist(cardId, data)
+          break
+
+        case 'UPDATE':
+          updatedCard = await cardModel.updateChecklist(cardId, checklistId, data)
+          break
+
+        case 'DELETE':
+          updatedCard = await cardModel.deleteChecklist(cardId, checklistId)
+          break
+
+        default:
+          throw new Error('Invalid checklist action')
+      }
     } else {
       // Update all
       updatedCard = await cardModel.update(cardId, updateData)
