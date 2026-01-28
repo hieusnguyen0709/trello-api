@@ -69,10 +69,10 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
 
       updatedCard = await cardModel.pullAttachment(cardId, updateData.cardAttachmentRemove)
     } else if (updateData.checklistAction) {
-      // ADD|UPDATE|DELETE checklist
-      const { type, checklistId, data } = updateData.checklistAction
+      const { type, checklistId, itemId, data } = updateData.checklistAction
 
       switch (type) {
+        // ===== CHECKLIST =====
         case 'ADD':
           updatedCard = await cardModel.createChecklist(cardId, data)
           break
@@ -83,6 +83,19 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
 
         case 'DELETE':
           updatedCard = await cardModel.deleteChecklist(cardId, checklistId)
+          break
+
+        // ===== CHECKLIST ITEM =====
+        case 'ITEM_ADD':
+          updatedCard = await cardModel.addChecklistItem(cardId, checklistId, data)
+          break
+
+        case 'ITEM_UPDATE':
+          updatedCard = await cardModel.updateChecklistItem(cardId, checklistId, itemId, data)
+          break
+
+        case 'ITEM_DELETE':
+          updatedCard = await cardModel.deleteChecklistItem(cardId, checklistId, itemId)
           break
 
         default:
