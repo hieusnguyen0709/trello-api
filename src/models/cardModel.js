@@ -208,31 +208,12 @@ const pullAttachment = async (cardId, attachment) => {
 
 const createChecklist = async (cardId, checklistData) => {
   try {
-    const items = [
-      {
-        _id: new ObjectId(),
-        title: 'Item 1',
-        isCompleted: true,
-        position: 1,
-        createdAt: Date.now(),
-        updatedAt: null
-      },
-      {
-        _id: new ObjectId(),
-        title: 'Item 2',
-        isCompleted: false,
-        position: 2,
-        createdAt: Date.now(),
-        updatedAt: null
-      }
-    ]
-
     const checklist = {
       _id: new ObjectId(),
       title: checklistData.title,
       description: checklistData.description || '',
       position: checklistData.position || 0,
-      items: items,
+      items: [],
       createdAt: Date.now(),
       updatedAt: null
     }
@@ -306,6 +287,92 @@ const deleteChecklist = async (cardId, checklistId) => {
   }
 }
 
+const addChecklistItem = async (cardId, checklistId, itemData) => {
+  try {
+    const newItem = {
+      _id: new ObjectId(),
+      title: itemData.title,
+      isCompleted: false,
+      position: itemData.position || 0,
+      createdAt: Date.now()
+    }
+
+    const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
+      {
+        _id: new ObjectId(cardId),
+        'checklist._id': new ObjectId(checklistId)
+      },
+      {
+        $push: {
+          'checklist.$.items': newItem
+        },
+        $set: {
+          updatedAt: Date.now()
+        }
+      },
+      { returnDocument: 'after' }
+    )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const updateChecklistItem = async (cardId, checklistId, itemId, updateData) => {
+  try {
+    // Build dynamic $set
+    const updateFields = {}
+    Object.keys(updateData).forEach(key => {
+      updateFields[`checklist.$[cl].items.$[it].${key}`] = updateData[key]
+    })
+
+    updateFields.updatedAt = Date.now()
+
+    const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
+      { _id: new ObjectId(cardId) },
+      {
+        $set: updateFields
+      },
+      {
+        arrayFilters: [
+          { 'cl._id': new ObjectId(checklistId) },
+          { 'it._id': new ObjectId(itemId) }
+        ],
+        returnDocument: 'after'
+      }
+    )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const deleteChecklistItem = async (cardId, checklistId, itemId) => {
+  try {
+    const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
+      {
+        _id: new ObjectId(cardId),
+        'checklist._id': new ObjectId(checklistId)
+      },
+      {
+        $pull: {
+          'checklist.$.items': { _id: new ObjectId(itemId) }
+        },
+        $set: {
+          updatedAt: Date.now()
+        }
+      },
+      { returnDocument: 'after' }
+    )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
@@ -319,5 +386,8 @@ export const cardModel = {
   pullAttachment,
   createChecklist,
   updateChecklist,
-  deleteChecklist
+  deleteChecklist,
+  addChecklistItem,
+  updateChecklistItem,
+  deleteChecklistItem
 }
