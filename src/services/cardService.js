@@ -30,10 +30,10 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
 
     let updatedCard = {}
 
-    if (cardCoverFile) {
+    if (cardCoverFile) { // COVER //
       const uploadResult = await CloudinaryProvider.streamUpload(cardCoverFile.buffer, 'card-covers')
       updatedCard = await cardModel.update(cardId, { cover: uploadResult.secure_url })
-    } else if (cardAttachmentFiles?.length) {
+    } else if (cardAttachmentFiles?.length) { // ADD ATTACHMENT //
       const uploadResults = await Promise.all(
         cardAttachmentFiles.map(cardAttachmentFile =>
           CloudinaryProvider.streamUpload(
@@ -45,7 +45,7 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
       )
       const attachments = uploadResults.map(r => r.secure_url)
       updatedCard = await cardModel.pushAttachments(cardId, attachments)
-    } else if (updateData.commentToAdd) {
+    } else if (updateData.commentToAdd) { // COMMENT //
       const commentData = {
         ...updateData.commentToAdd,
         commentedAt: Date.now(),
@@ -53,11 +53,9 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
         userEmail: userInfo.email
       }
       updatedCard = await cardModel.unshiftNewComment(cardId, commentData)
-    } else if (updateData.incomingMemberInfo) {
-      // ADD or REMOVE members
+    } else if (updateData.incomingMemberInfo) { // MEMBER //
       updatedCard = await cardModel.updateMembers(cardId, updateData.incomingMemberInfo)
-    } else if (updateData.cardAttachmentRemove) {
-      // REMOVE attachment
+    } else if (updateData.cardAttachmentRemove) { // REMOVE ATTACHMENT //
       const publicId = extractPublicId(updateData.cardAttachmentRemove)
       if (publicId) {
         try {
@@ -68,7 +66,7 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
       }
 
       updatedCard = await cardModel.pullAttachment(cardId, updateData.cardAttachmentRemove)
-    } else if (updateData.checklistAction) {
+    } else if (updateData.checklistAction) { // CHECKLIST //
       const { type, checklistId, itemId, data } = updateData.checklistAction
 
       switch (type) {
@@ -101,7 +99,23 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
         default:
           throw new Error('Invalid checklist action')
       }
-    } else {
+    } else if (updateData.labelAction) {
+      const { type, labelId } = updateData.labelAction
+
+      switch (type) {
+        case 'ADD':
+          updatedCard = await cardModel.addLabel(cardId, labelId)
+          break
+
+        case 'DELETE':
+          updatedCard = await cardModel.deleteLabel(cardId, labelId)
+          break
+
+        default:
+          throw new Error('Invalid label action')
+      }
+    }
+    else {
       // Update all
       updatedCard = await cardModel.update(cardId, updateData)
     }

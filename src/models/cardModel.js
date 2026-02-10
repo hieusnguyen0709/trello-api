@@ -12,14 +12,26 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
 
   title: Joi.string().required().min(3).max(50).trim().strict(),
   description: Joi.string().optional(),
+
+  /* ================= COVER ================= */
   cover: Joi.string().default(null),
-  attachments: Joi.array().items(Joi.string().default([])),
+
+  /* ================= ATTACHMENTS ================= */
+  attachments: Joi.array().items(Joi.string()).default([]),
+
+  /* ================= LABELS ================= */
+  labelIds: Joi.array().items(
+    Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+  ).default([]),
+
+  /* ================= CHECKLIST ================= */
   checklist: Joi.array().items(
     Joi.object({
       _id: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
       title: Joi.string().required().min(1).max(50).trim().strict(),
       description: Joi.string().optional(),
       position: Joi.number().integer().min(0),
+
       items: Joi.array().items(
         Joi.object({
           _id: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
@@ -34,21 +46,21 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
       updatedAt: Joi.date().timestamp('javascript').default(null)
     })
   ).default([]),
+
+  /* ================= MEMBERS ================= */
   memberIds: Joi.array().items(
     Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
   ).default([]),
 
-  // Dữ liệu comments của Card chúng ta sẽ học cách nhúng -- embedded vào bản ghi Card luôn như dưới đây:
+  /* ================= COMMENTS ================= */
   comments: Joi.array().items({
     userId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
     userEmail: Joi.string().pattern(EMAIL_RULE).message(EMAIL_RULE_MESSAGE),
     userAvatar: Joi.string(),
     userDisplayName: Joi.string(),
     content: Joi.string(),
-    // Chỗ này lưu ý vì dùng hàm $push để thêm comment nên không set default Date.now luôn giống hàm insertOne khi create được.
     commentedAt: Joi.date().timestamp()
   }).default([]),
-
 
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null),
@@ -373,6 +385,34 @@ const deleteChecklistItem = async (cardId, checklistId, itemId) => {
   }
 }
 
+const addLabel = async (cardId, labelId) => {
+  try {
+    const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
+      { _id: new ObjectId(cardId) },
+      { $push: { labelIds: new ObjectId(labelId) } },
+      { returnDocument: 'after' }
+    )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const deleteLabel = async (cardId, labelId) => {
+  try {
+    const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
+      { _id: new ObjectId(cardId) },
+      { $pull: { labelIds: new ObjectId(labelId) } },
+      { returnDocument: 'after' }
+    )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
@@ -389,5 +429,7 @@ export const cardModel = {
   deleteChecklist,
   addChecklistItem,
   updateChecklistItem,
-  deleteChecklistItem
+  deleteChecklistItem,
+  addLabel,
+  deleteLabel
 }

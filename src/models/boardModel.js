@@ -6,6 +6,7 @@ import { BOARD_TYPES } from '~/utils/constants'
 import { columnModel } from '~/models/columnModel'
 import { cardModel } from '~/models/cardModel'
 import { userModel } from '~/models/userModel'
+import { labelModel } from './labelModel'
 import { pagingSkipValue } from '~/utils/algorithms'
 
 // Define Collection (Name & Schema)
@@ -26,6 +27,10 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
     ).default([]),
 
     memberIds: Joi.array().items(
+        Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+    ).default([]),
+
+    labelIds: Joi.array().items(
         Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
     ).default([]),
 
@@ -105,6 +110,12 @@ const getDetails = async (userId, boardId) => {
                 foreignField: '_id',
                 as: 'members',
                 pipeline: [{ $project: { 'password': 0, 'verifyToken': 0 } }]
+            } },
+            { $lookup: {
+                from: labelModel.LABEL_COLLECTION_NAME,
+                localField: 'labelIds',
+                foreignField: '_id',
+                as: 'labels'
             } }
         ]).toArray()
         return result[0] || null
@@ -151,6 +162,10 @@ const update = async (boardId, updateData) => {
 
         if (updateData.columnOrderIds) {
             updateData.columnOrderIds = updateData.columnOrderIds.map(_id => (new ObjectId(_id)))
+        }
+
+        if (updateData.labelIds) {
+            updateData.labelIds = updateData.labelIds.map(id => new ObjectId(id))
         }
 
         const result = await GET_DB().collection(BOARD_COLLECTION_NAME).findOneAndUpdate(

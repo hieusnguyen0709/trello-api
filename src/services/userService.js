@@ -107,7 +107,7 @@ const refreshToken = async (clientRefreshToken) => {
         clientRefreshToken, 
         env.REFRESH_TOKEN_SECRET_SIGNATURE
     )
-    console.log(refreshTokenDecoded)
+    // console.log(refreshTokenDecoded)
 
     // Đoạn này vì chúng ta chỉ lưu những thông tin unique và cố định của user trong token rồi,
     // vì vậy có thể lấy luôn từ decoded ra, tiết kiệm query vào DB để lấy data thêm.
