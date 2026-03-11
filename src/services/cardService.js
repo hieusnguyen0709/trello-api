@@ -104,11 +104,11 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
 
       switch (type) {
         case 'ADD':
-          updatedCard = await cardModel.addLabel(cardId, labelId)
+          updatedCard = await cardModel.pushLabelIds(cardId, labelId)
           break
 
         case 'DELETE':
-          updatedCard = await cardModel.deleteLabel(cardId, labelId)
+          updatedCard = await cardModel.pullLabelIds(cardId, labelId)
           break
 
         default:

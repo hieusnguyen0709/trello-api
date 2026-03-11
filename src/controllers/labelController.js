@@ -40,9 +40,48 @@ const deleteOne = async (req, res, next) => {
   }
 }
 
+const toggle = async (req, res, next) => {
+  try {
+    const result = await labelService.toggle(req.body)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+// const createNewLabel = async (req, res, next) => {
+//   try {
+//     const result = await labelService.createNewLabel(req.body)
+
+//     res.status(StatusCodes.CREATED).json(result)
+//   } catch (error) {
+//     next(error)
+//   }
+// }
+
+// const deleteOneLabel = async (req, res, next) => {
+//   try {
+//     const { boardId, cardId } = req.body
+//     const labelId = req.params.id
+
+//     const updatedCard = await labelService.deleteOneLabel({
+//       boardId,
+//       cardId,
+//       labelId
+//     })
+
+//     res.status(StatusCodes.OK).json(updatedCard)
+//   } catch (error) {
+//     next(error)
+//   }
+// }
+
 export const labelController = {
   createNew,
   getByBoardId,
   update,
-  deleteOne
+  deleteOne,
+  toggle,
+  // createNewLabel,
+  // deleteOneLabel
 }

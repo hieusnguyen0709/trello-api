@@ -385,7 +385,7 @@ const deleteChecklistItem = async (cardId, checklistId, itemId) => {
   }
 }
 
-const addLabel = async (cardId, labelId) => {
+const pushLabelIds = async (cardId, labelId) => {
   try {
     const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
       { _id: new ObjectId(cardId) },
@@ -399,7 +399,7 @@ const addLabel = async (cardId, labelId) => {
   }
 }
 
-const deleteLabel = async (cardId, labelId) => {
+const pullLabelIds = async (cardId, labelId) => {
   try {
     const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
       { _id: new ObjectId(cardId) },
@@ -430,6 +430,6 @@ export const cardModel = {
   addChecklistItem,
   updateChecklistItem,
   deleteChecklistItem,
-  addLabel,
-  deleteLabel
+  pushLabelIds,
+  pullLabelIds
 }

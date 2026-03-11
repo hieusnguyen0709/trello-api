@@ -58,15 +58,24 @@ const update = async (labelId, updateData) => {
 }
 
 const deleteOne = async (labelId) => {
-  return await GET_DB().collection(LABEL_COLLECTION_NAME).updateOne(
-    { _id: new ObjectId(labelId) },
-    {
-      $set: {
-        _destroy: true,
-        updatedAt: Date.now()
-      }
-    }
-  )
+  return await GET_DB()
+    .collection(LABEL_COLLECTION_NAME)
+    .deleteOne({ _id: new ObjectId(labelId) })
+}
+
+export const findByTitleAndColor = async (boardId, title, color) => {
+  try {
+    return await GET_DB()
+      .collection(LABEL_COLLECTION_NAME)
+      .findOne({
+        boardId: new ObjectId(boardId),
+        title: title,
+        color: color,
+        _destroy: false
+      })
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 export const labelModel = {
@@ -74,5 +83,6 @@ export const labelModel = {
   createNew,
   findByBoardId,
   update,
-  deleteOne
+  deleteOne,
+  findByTitleAndColor
 }
