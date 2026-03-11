@@ -249,6 +249,34 @@ const pushMemberIds = async (boardId, userId) => {
     }
 }
 
+const pushLabelIds = async (boardId, labelId) => {
+  try {
+    const result = await GET_DB().collection(BOARD_COLLECTION_NAME).findOneAndUpdate(
+      { _id: new ObjectId(boardId) },
+      { $push: { labelIds: new ObjectId(labelId) } },
+      { returnDocument: 'after' }
+    )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const pullLabelIds = async (boardId, labelId) => {
+  try {
+    const result = await GET_DB().collection(BOARD_COLLECTION_NAME).findOneAndUpdate(
+      { _id: new ObjectId(boardId) },
+      { $pull: { labelIds: new ObjectId(labelId) } },
+      { returnDocument: 'after' }
+    )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const boardModel = {
     BOARD_COLLECTION_NAME,
     BOARD_COLLECTION_SCHEMA,
@@ -259,5 +287,7 @@ export const boardModel = {
     pullColumnOrderIds,
     update,
     getBoards,
-    pushMemberIds
+    pushMemberIds,
+    pushLabelIds,
+    pullLabelIds
 }

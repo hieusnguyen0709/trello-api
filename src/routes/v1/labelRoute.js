@@ -12,4 +12,7 @@ Router.route('/:id')
     .put(authMiddleware.isAuthorized, labelValidation.update, labelController.update)
     .delete(authMiddleware.isAuthorized, labelController.deleteOne)
 
+Router.route('/toggle')
+    .post(authMiddleware.isAuthorized, labelValidation.toggle, labelController.toggle)
+
 export const labelRoute = Router
