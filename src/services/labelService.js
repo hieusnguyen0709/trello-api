@@ -1,14 +1,19 @@
 import { labelModel } from '~/models/labelModel'
 import { cardModel } from '~/models/cardModel'
-import { boardModel } from '~/models/boardModel'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 
-const createNew = async (reqBody) => {
+const createNew = async ({ boardId, title, color }) => {
+  const existingLabel = await labelModel.findByTitleAndColor(boardId, title, color)
+
+  if (existingLabel) {
+    throw new ApiError(StatusCodes.CONFLICT, 'Label with this title and color already exists')
+  }
+
   return await labelModel.createNew({
-    boardId: reqBody.boardId,
-    title: reqBody.title,
-    color: reqBody.color
+    boardId,
+    title,
+    color
   })
 }
 
