@@ -78,7 +78,7 @@ const update = async (req, res, next) => {
   try {
     const userId = req.jwtDecoded._id
     const userAvatarFile = req.file
-    console.log('Controller > userAvatarFile: ', userAvatarFile)
+    // console.log('Controller > userAvatarFile: ', userAvatarFile)
     const updateUser = await userService.update(userId, req.body, userAvatarFile)
     res.status(StatusCodes.OK).json(updateUser)
   } catch (error) { next(error) }

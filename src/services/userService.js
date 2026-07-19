@@ -104,7 +104,7 @@ const refreshToken = async (clientRefreshToken) => {
   try {
     // Verify / giải mã cái refresh token xem có hợp lệ không
     const refreshTokenDecoded = await JwtProvider.verifyToken(
-        clientRefreshToken, 
+        clientRefreshToken,
         env.REFRESH_TOKEN_SECRET_SIGNATURE
     )
     // console.log(refreshTokenDecoded)

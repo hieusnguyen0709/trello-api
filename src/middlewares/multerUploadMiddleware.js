@@ -3,9 +3,9 @@ import multer from 'multer'
 import ApiError from '~/utils/ApiError'
 import { LIMIT_COMMON_FILE_SIZE,
     ALLOW_COMMON_FILE_TYPES,
-    LIMIT_COMMON_ATTACHMENT_FILE_SIZE,
+    // LIMIT_COMMON_ATTACHMENT_FILE_SIZE,
     ALLOW_COMMON_ATTACHMENT_FILE_TYPES
-    } 
+    }
     from '~/utils/validators'
 
 const customFileFilter = (req, file, callback) => {

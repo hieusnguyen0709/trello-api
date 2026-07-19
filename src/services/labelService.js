@@ -70,7 +70,7 @@ export const labelService = {
   getByBoardId,
   update,
   deleteOne,
-  toggle,
+  toggle
   // createNewLabel,
   // deleteOneLabel
 }

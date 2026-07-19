@@ -75,7 +75,7 @@ const toggle = async (req, res, next) => {
     labelId: Joi.string()
       .required()
       .pattern(OBJECT_ID_RULE)
-      .message(OBJECT_ID_RULE_MESSAGE),
+      .message(OBJECT_ID_RULE_MESSAGE)
   })
 
   try {

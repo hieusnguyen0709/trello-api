@@ -50,8 +50,8 @@ const createNewBoardInvitation = async (data) => {
     // Gọi insert vào DB
     const createdInvitation = await GET_DB().collection(INVITATION_COLLECTION_NAME).insertOne(newInvitationToAdd)
     return createdInvitation
-  } catch (error) { 
-    throw new Error(error) 
+  } catch (error) {
+    throw new Error(error)
   }
 }
 

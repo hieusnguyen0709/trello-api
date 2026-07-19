@@ -12,7 +12,7 @@ const mongoClientInstance = new MongoClient(env.MONGODB_URI, {
 })
 
 export const CLOSE_DB = async () => {
-    await mongoClientInstance.close();
+    await mongoClientInstance.close()
 }
 
 export const CONNECT_DB = async () => {
