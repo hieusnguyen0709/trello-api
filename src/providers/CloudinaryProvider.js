@@ -29,7 +29,7 @@ const deleteFile = (publicId, resourceType) => {
   })
 }
 
-export const CloudinaryProvider = { 
+export const CloudinaryProvider = {
     streamUpload,
     deleteFile
 }

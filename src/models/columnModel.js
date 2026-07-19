@@ -22,7 +22,7 @@ const COLUMN_COLLECTION_SCHEMA = Joi.object({
 const INVALID_UPDATE_FIELDS = ['_id', 'boardId', 'createdAt']
 
 const validateBeforeCreate = async (data) => {
-  return await COLUMN_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false }) 
+  return await COLUMN_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
 }
 
 const createNew = async (data) => {

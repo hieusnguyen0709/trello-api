@@ -70,7 +70,7 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
 const INVALID_UPDATE_FIELDS = ['_id', 'boardId', 'createdAt']
 
 const validateBeforeCreate = async (data) => {
-  return await CARD_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false }) 
+  return await CARD_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
 }
 
 const createNew = async (data) => {
@@ -144,9 +144,9 @@ const unshiftNewComment = async (cardId, commentData) => {
       { returnDocument: 'after' }
     )
 
-    return result;
+    return result
   } catch (error) {
-    throw new Error(error);
+    throw new Error(error)
   }
 }
 

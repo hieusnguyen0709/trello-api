@@ -81,7 +81,7 @@ export const labelController = {
   getByBoardId,
   update,
   deleteOne,
-  toggle,
+  toggle
   // createNewLabel,
   // deleteOneLabel
 }
