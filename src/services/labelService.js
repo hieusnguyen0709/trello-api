@@ -35,6 +35,7 @@ const deleteOne = async (labelId) => {
 
 export const toggle = async ({ cardId, labelId }) => {
   const card = await cardModel.findOneById(cardId)
+  if (!card) throw new ApiError(StatusCodes.NOT_FOUND, 'Card not found!')
   const hasLabel = card.labelIds.some(id => id.toString() === labelId.toString())
 
   return hasLabel

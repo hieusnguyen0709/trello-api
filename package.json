@@ -16,6 +16,9 @@
     "production": "npm run build && cross-env BUILD_MODE=production node ./build/src/server.js",
     "dev": "cross-env BUILD_MODE=dev nodemon --exec babel-node ./src/server.js"
   },
+  "jest": {
+    "clearMocks": true
+  },
   "dependencies": {
     "@babel/runtime": "^7.22.10",
     "@getbrevo/brevo": "^2.0.0-beta.4",
