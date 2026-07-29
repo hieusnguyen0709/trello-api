@@ -1,9 +1,15 @@
+jest.mock('~/config/mongodb', () => ({
+  mongoClientInstance: {
+    connect: jest.fn(),
+    db: jest.fn()
+  }
+}))
+jest.mock('~/models/labelModel')
+jest.mock('~/models/cardModel')
+
 import { labelService } from '~/services/labelService'
 import { labelModel } from '~/models/labelModel'
 import { cardModel } from '~/models/cardModel'
-
-jest.mock('~/models/labelModel')
-jest.mock('~/models/cardModel')
 
 describe('labelService.createNew', () => {
     it('Throw a 409 ApiError when a label with the same title and color already exists', async () => {

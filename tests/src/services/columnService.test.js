@@ -1,11 +1,17 @@
+jest.mock('~/config/mongodb', () => ({
+  mongoClientInstance: {
+    connect: jest.fn(),
+    db: jest.fn()
+  }
+}))
+jest.mock('~/models/columnModel')
+jest.mock('~/models/boardModel')
+jest.mock('~/models/cardModel')
+
 import { columnService } from '~/services/columnService'
 import { columnModel } from '~/models/columnModel'
 import { boardModel } from '~/models/boardModel'
 import { cardModel } from '~/models/cardModel'
-
-jest.mock('~/models/columnModel')
-jest.mock('~/models/boardModel')
-jest.mock('~/models/cardModel')
 
 describe('columnService.createNew', () => {
     it('Create a column and push its ID into the parent board order', async () => {
