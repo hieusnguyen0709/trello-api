@@ -2,6 +2,8 @@ import { cardModel } from '~/models/cardModel'
 import { columnModel } from '~/models/columnModel'
 import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
 import { extractPublicId } from '~/utils/formatters'
+import ApiError from '~/utils/ApiError'
+import { StatusCodes } from 'http-status-codes'
 
 const createNew = async (reqBody) => {
   try {
@@ -57,14 +59,10 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
       updatedCard = await cardModel.updateMembers(cardId, updateData.incomingMemberInfo)
     } else if (updateData.cardAttachmentRemove) { // REMOVE ATTACHMENT //
       const publicId = extractPublicId(updateData.cardAttachmentRemove)
-      if (publicId) {
-        try {
-          await CloudinaryProvider.deleteFile(publicId, 'raw')
-        } catch (err) {
-          throw err
-        }
+      if (!publicId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid attachment URL, cannot determine publicId')
       }
-
+      await CloudinaryProvider.deleteFile(publicId, 'raw')
       updatedCard = await cardModel.pullAttachment(cardId, updateData.cardAttachmentRemove)
     } else if (updateData.checklistAction) { // CHECKLIST //
       const { type, checklistId, itemId, data } = updateData.checklistAction
@@ -97,7 +95,7 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
           break
 
         default:
-          throw new Error('Invalid checklist action')
+          throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid checklist action')
       }
     } else if (updateData.labelAction) {
       const { type, labelId } = updateData.labelAction
@@ -112,7 +110,7 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
           break
 
         default:
-          throw new Error('Invalid label action')
+          throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid label action')
       }
     }
     else {

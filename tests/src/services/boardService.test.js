@@ -1,18 +1,12 @@
-jest.mock('~/config/mongodb', () => ({
-  mongoClientInstance: {
-    connect: jest.fn(),
-    db: jest.fn()
-  }
-}))
-
-jest.mock('~/models/boardModel')
-jest.mock('~/models/columnModel')
-jest.mock('~/models/cardModel')
-
 import { boardService } from '~/services/boardService'
 import { boardModel } from '~/models/boardModel'
 import { columnModel } from '~/models/columnModel'
 import { cardModel } from '~/models/cardModel'
+
+jest.mock('~/config/mongodb')
+jest.mock('~/models/boardModel')
+jest.mock('~/models/columnModel')
+jest.mock('~/models/cardModel')
 
 describe('boardService.createNew', () => {
     it('Creates a slug from the title and passes it to boardModel.createNew, then fetches the full board using the inserted ID', async () => {
