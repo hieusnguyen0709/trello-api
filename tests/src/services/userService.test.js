@@ -1,20 +1,14 @@
-jest.mock('~/config/mongodb', () => ({
-  mongoClientInstance: {
-    connect: jest.fn(),
-    db: jest.fn()
-  }
-}))
-
-jest.mock('~/models/userModel')
-jest.mock('~/providers/BrevoProvider')
-jest.mock('bcryptjs')
-jest.mock('uuid')
-
 import { userService } from '~/services/userService'
 import { userModel } from '~/models/userModel'
 import { BrevoProvider } from '~/providers/BrevoProvider'
 import bcryptjs from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
+
+jest.mock('~/config/mongodb')
+jest.mock('~/models/userModel')
+jest.mock('~/providers/BrevoProvider')
+jest.mock('bcryptjs')
+jest.mock('uuid')
 
 describe('userService.createNew', () => {
     it('Throw a 409 ApiError when the email already exists', async () => {
