@@ -78,6 +78,9 @@ jobs:
             -e AUTHOR=trello-api-ci \
             trello-api:test
 
+      - name: Debug - show healthcheck log
+        run: docker inspect --format='{{json .State.Health}}' trello-api-test | python3 -m json.tool
+
       - name: Wait for container to be healthy
         run: |
           for i in {1..30}; do
