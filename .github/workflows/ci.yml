@@ -63,7 +63,7 @@ jobs:
             -e BUILD_MODE=production \
             -e PORT=8017 \
             -e AUTHOR=trello-api-ci \
-            trello-api-test
+            trello-api:test
 
       - name: Wait for server to be ready
         run: |
