@@ -31,3 +31,17 @@ jobs:
 
       - name: Build
         run: yarn build
+  test-docker-build:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image (test only)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: trello-api:test
