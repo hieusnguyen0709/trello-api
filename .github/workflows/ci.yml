@@ -78,17 +78,18 @@ jobs:
             -e AUTHOR=trello-api-ci \
             trello-api:test
 
-      - name: Wait for server to be ready
+      - name: Wait for container to be healthy
         run: |
-          for i in {1..15}; do
-            if curl -sf http://localhost:8017/ > /dev/null; then
-              echo "Server is up!"
+          for i in {1..30}; do
+            status=$(docker inspect --format='{{.State.Health.Status}}' trello-api-test)
+            echo "Health status: $status ($i)"
+            if [ "$status" == "healthy" ]; then
+              echo "Container is healthy!"
               exit 0
             fi
-            echo "Waiting for server... ($i)"
             sleep 2
           done
-          echo "Server did not respond in time"
+          echo "Container did not become healthy in time"
           docker logs trello-api-test
           exit 1
 
