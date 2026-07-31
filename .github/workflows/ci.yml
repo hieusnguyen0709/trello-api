@@ -78,9 +78,6 @@ jobs:
             -e AUTHOR=trello-api-ci \
             trello-api:test
 
-      - name: Debug - show healthcheck log
-        run: docker inspect --format='{{json .State.Health}}' trello-api-test | python3 -m json.tool
-
       - name: Wait for container to be healthy
         run: |
           for i in {1..30}; do
@@ -95,6 +92,9 @@ jobs:
           echo "Container did not become healthy in time"
           docker logs trello-api-test
           exit 1
+          
+      - name: Debug - show healthcheck log
+        run: docker inspect --format='{{json .State.Health}}' trello-api-test | python3 -m json.tool
 
       - name: Show container logs
         if: always()
