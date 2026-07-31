@@ -47,16 +47,24 @@ jobs:
         run: |
           docker run -d -p 8017:8017 --name trello-test trello-api:test
 
-      - name: Wait for app to start
-        run: sleep 10
-
-      - name: Test API (health check)
+      - name: Check container is running
         run: |
-          curl -f http://localhost:8017 || exit 1
+          docker ps -a
 
-      - name: Show logs if failed
-        if: failure()
-        run: docker logs trello-test
+      - name: Wait for app to start (retry)
+        run: |
+          for i in {1..10}; do
+            if curl -f http://localhost:8017; then
+              echo "✅ API is up"
+              exit 0
+            fi
+            echo "⏳ Waiting for API..."
+            sleep 3
+          done
+          echo "❌ API failed to start"
+          docker logs trello-test
+          exit 1
 
       - name: Stop container
+        if: always()
         run: docker stop trello-test
