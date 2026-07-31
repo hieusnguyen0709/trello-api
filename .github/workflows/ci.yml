@@ -35,36 +35,52 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
 
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: |
-          docker build -t trello-api:test .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: trello-api:test
 
       - name: Run container
         run: |
-          docker run -d -p 8017:8017 --name trello-test trello-api:test
+          docker run -d \
+            --name trello-api-test \
+            --network host \
+            -e MONGODB_URI=mongodb://localhost:27017 \
+            -e DATABASE_NAME=trello_test_db \
+            -e BUILD_MODE=production \
+            trello-api:test
 
-      - name: Check container is running
+      - name: Wait for server to be ready
         run: |
-          docker ps -a
-
-      - name: Wait for app to start (retry)
-        run: |
-          for i in {1..10}; do
-            if curl -f http://localhost:8017; then
-              echo "✅ API is up"
+          for i in {1..15}; do
+            if curl -sf http://localhost:8017/ > /dev/null; then
+              echo "Server is up!"
               exit 0
             fi
-            echo "⏳ Waiting for API..."
-            sleep 3
+            echo "Waiting for server... ($i)"
+            sleep 2
           done
-          echo "❌ API failed to start"
-          docker logs trello-test
+          echo "Server did not respond in time"
+          docker logs trello-api-test
           exit 1
+
+      - name: Show container logs
+        if: always()
+        run: docker logs trello-api-test
 
       - name: Stop container
         if: always()
-        run: docker stop trello-test
+        run: docker rm -f trello-api-test
