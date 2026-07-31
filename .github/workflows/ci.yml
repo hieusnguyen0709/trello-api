@@ -61,6 +61,7 @@ jobs:
             -e MONGODB_URI=mongodb://localhost:27017 \
             -e DATABASE_NAME=trello_test_db \
             -e BUILD_MODE=production \
+            -e PORT=8017 \
             trello-api:test
 
       - name: Wait for server to be ready
