@@ -94,6 +94,7 @@ jobs:
           exit 1
           
       - name: Debug - show healthcheck log
+        if: always()
         run: docker inspect --format='{{json .State.Health}}' trello-api-test | python3 -m json.tool
 
       - name: Show container logs
