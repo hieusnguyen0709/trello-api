@@ -53,6 +53,19 @@ jobs:
           load: true
           tags: trello-api:test
 
+      - name: Wait for MongoDB to be ready
+        run: |
+          for i in {1..15}; do
+            if docker run --rm --network host mongo:6 mongosh --eval "db.adminCommand('ping')" mongodb://localhost:27017 > /dev/null 2>&1; then
+              echo "MongoDB is ready!"
+              exit 0
+            fi
+            echo "Waiting for MongoDB... ($i)"
+            sleep 2
+          done
+          echo "MongoDB did not respond in time"
+          exit 1
+          
       - name: Run container
         run: |
           docker run -d \
