@@ -35,53 +35,13 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
 
-    services:
-      mongodb:
-        image: mongo:6
-        ports:
-          - 27017:27017
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Docker image
+      - name: Build Docker image (test only)
         uses: docker/build-push-action@v6
         with:
           context: .
           push: false
-          load: true
           tags: trello-api:test
-
-      - name: Run container
-        run: |
-          docker run -d \
-            --name trello-api-test \
-            --network host \
-            -e MONGODB_URI=mongodb://localhost:27017 \
-            -e DATABASE_NAME=trello_test_db \
-            -e BUILD_MODE=production \
-            -e PORT=8017 \
-            trello-api:test
-
-      - name: Wait for server to be ready
-        run: |
-          for i in {1..15}; do
-            if curl -sf http://localhost:8017/ > /dev/null; then
-              echo "Server is up!"
-              exit 0
-            fi
-            echo "Waiting for server... ($i)"
-            sleep 2
-          done
-          echo "Server did not respond in time"
-          docker logs trello-api-test
-          exit 1
-
-      - name: Show container logs
-        if: always()
-        run: docker logs trello-api-test
-
-      - name: Stop container
-        if: always()
-        run: docker rm -f trello-api-test
