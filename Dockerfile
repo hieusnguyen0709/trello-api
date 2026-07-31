@@ -21,6 +21,6 @@ COPY --from=builder /app/build ./build
 EXPOSE 8017
 
 HEALTHCHECK --interval=5s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget -qO- http://localhost:8017/ || exit 1
+  CMD node -e "require('http').get('http://localhost:8017/', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
 
 CMD ["node", "build/src/server.js"]
