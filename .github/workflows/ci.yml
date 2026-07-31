@@ -39,9 +39,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Docker image (test only)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: false
-          tags: trello-api:test
+      - name: Build Docker image
+        run: |
+          docker build -t trello-api:test .
+
+      - name: Run container
+        run: |
+          docker run -d -p 8017:8017 --name trello-test trello-api:test
+
+      - name: Wait for app to start
+        run: sleep 10
+
+      - name: Test API (health check)
+        run: |
+          curl -f http://localhost:8017 || exit 1
+
+      - name: Show logs if failed
+        if: failure()
+        run: docker logs trello-test
+
+      - name: Stop container
+        run: docker stop trello-test
