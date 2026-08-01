@@ -31,6 +31,7 @@ jobs:
 
       - name: Build
         run: yarn build
+        
   test-docker-build:
     needs: build
     runs-on: ubuntu-latest
@@ -65,7 +66,7 @@ jobs:
           done
           echo "MongoDB did not respond in time"
           exit 1
-          
+
       - name: Run container
         run: |
           docker run -d \
@@ -90,15 +91,14 @@ jobs:
             sleep 2
           done
           echo "Container did not become healthy in time"
-          docker logs trello-api-test
           exit 1
-          
-      - name: Debug - show healthcheck log
-        if: always()
+
+      - name: Show healthcheck log (on failure)
+        if: failure()
         run: docker inspect --format='{{json .State.Health}}' trello-api-test | python3 -m json.tool
 
-      - name: Show container logs
-        if: always()
+      - name: Show container logs (on failure)
+        if: failure()
         run: docker logs trello-api-test
 
       - name: Stop container
