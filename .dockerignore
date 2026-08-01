@@ -1,0 +1,8 @@
+node_modules
+build
+.env
+.env.example
+.git
+.github
+tests
+*.md
