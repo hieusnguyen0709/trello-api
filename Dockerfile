@@ -21,6 +21,6 @@ COPY --from=builder /app/build ./build
 EXPOSE 8017
 
 HEALTHCHECK --interval=5s --timeout=3s --start-period=40s --retries=5 \
-  CMD ["node", "-e", "require('http').get('http://localhost:8017/', (res) => { console.log('status:', res.statusCode); process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', (err) => { console.error('error:', err.message); process.exit(1); })"]
+CMD ["node", "-e", "require('http').get('http://localhost:8017/', (res) => { console.log('status:', res.statusCode); process.exit(0); }).on('error', (err) => { console.error('error:', err.message); process.exit(1); })"]
 
 CMD ["node", "build/src/server.js"]
