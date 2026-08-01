@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: yarn build
         
-  test-docker-build:
+  docker-build-and-push:
     needs: build
     runs-on: ubuntu-latest
 
@@ -42,9 +42,21 @@ jobs:
         ports:
           - 27017:27017
 
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        if: github.ref == 'refs/heads/master'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
         uses: docker/build-push-action@v6
@@ -52,12 +64,14 @@ jobs:
           context: .
           push: false
           load: true
-          tags: trello-api:test
+          tags: |
+            trello-api:test
+            ghcr.io/${{ github.repository }}:latest
 
       - name: Wait for MongoDB to be ready
         run: |
           for i in {1..15}; do
-            if docker run --rm --network host mongo:6 mongosh --eval "db.adminCommand('ping')" mongodb://localhost:27017 > /dev/null 2>&1; then
+            if docker exec ${{ job.services.mongodb.id }} mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
               echo "MongoDB is ready!"
               exit 0
             fi
@@ -104,3 +118,7 @@ jobs:
       - name: Stop container
         if: always()
         run: docker rm -f trello-api-test
+
+      - name: Push image to GHCR
+        if: github.ref == 'refs/heads/master'
+        run: docker push ghcr.io/${{ github.repository }}:latest
