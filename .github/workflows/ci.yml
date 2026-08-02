@@ -58,6 +58,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Configure AWS credentials
+        if: github.ref == 'refs/heads/master'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Log in to Amazon ECR
+        if: github.ref == 'refs/heads/master'
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
@@ -67,6 +79,7 @@ jobs:
           tags: |
             trello-api:test
             ghcr.io/${{ github.repository }}:latest
+            554392673060.dkr.ecr.us-east-1.amazonaws.com/trello-api:latest
 
       - name: Wait for MongoDB to be ready
         run: |
@@ -122,3 +135,27 @@ jobs:
       - name: Push image to GHCR
         if: github.ref == 'refs/heads/master'
         run: docker push ghcr.io/${{ github.repository }}:latest
+
+      - name: Push image to Amazon ECR
+        if: github.ref == 'refs/heads/master'
+        run: docker push 554392673060.dkr.ecr.us-east-1.amazonaws.com/trello-api:latest
+
+  deploy-to-ecs:
+    needs: docker-build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Force new ECS deployment
+        run: |
+          aws ecs update-service \
+            --cluster trello-api-cluster \
+            --service trello-api-service \
+            --force-new-deployment
