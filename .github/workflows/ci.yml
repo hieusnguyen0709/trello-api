@@ -90,7 +90,7 @@ jobs:
             -e DATABASE_NAME=trello_test_db \
             -e BUILD_MODE=production \
             -e PORT=8017 \
-            -e AUTHOR=trello-api-ci \
+            -e AUTHOR=HieuNM \
             trello-api:test
 
       - name: Wait for container to be healthy
