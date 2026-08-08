@@ -2,7 +2,8 @@ import { env } from '~/config/environment'
 
 // Những domain được phép truy cập tới tài nguyên của Server
 export const WHITELIST_DOMAINS = [
-  'https://trello-web-nine-flax.vercel.app'
+  'https://trello-web-nine-flax.vercel.app',
+  'https://trello-clone.website'
 ]
 
 export const BOARD_TYPES = {
