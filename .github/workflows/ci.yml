@@ -140,22 +140,26 @@ jobs:
         if: github.ref == 'refs/heads/master'
         run: docker push 554392673060.dkr.ecr.us-east-1.amazonaws.com/trello-api:latest
 
-  deploy-to-ecs:
+  deploy-to-ec2:
     needs: docker-build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
 
     steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Force new ECS deployment
-        run: |
-          aws ecs update-service \
-            --cluster trello-api-cluster \
-            --service trello-api-service \
-            --force-new-deployment
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 554392673060.dkr.ecr.us-east-1.amazonaws.com
+            sudo docker pull 554392673060.dkr.ecr.us-east-1.amazonaws.com/trello-api:latest
+            sudo docker stop trello-api || true
+            sudo docker rm trello-api || true
+            sudo docker run -d \
+              --name trello-api \
+              --network host \
+              --env-file /home/ubuntu/.env \
+              --restart unless-stopped \
+              554392673060.dkr.ecr.us-east-1.amazonaws.com/trello-api:latest
