@@ -69,10 +69,10 @@ describe('cardService.update', () => {
             await cardService.update('card1', {}, null, files, null)
 
             expect(CloudinaryProvider.streamUpload).toHaveBeenNthCalledWith(
-                1, files[0].buffer, 'card-attachments', { resource_type: 'raw', type: 'upload', access_mode: 'upload', public_id: 'document1.pdf' }
+                1, files[0].buffer, 'card-attachments', { resource_type: 'raw', type: 'upload', access_mode: 'public', public_id: 'document1.pdf' }
             )
             expect(CloudinaryProvider.streamUpload).toHaveBeenNthCalledWith(
-                2, files[1].buffer, 'card-attachments', { resource_type: 'raw', type: 'upload', access_mode: 'upload', public_id: 'document2.pdf' }
+                2, files[1].buffer, 'card-attachments', { resource_type: 'raw', type: 'upload', access_mode: 'public', public_id: 'document2.pdf' }
             )
         })
 
