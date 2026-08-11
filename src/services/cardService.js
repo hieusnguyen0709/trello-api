@@ -41,7 +41,7 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
           CloudinaryProvider.streamUpload(
             cardAttachmentFile.buffer,
             'card-attachments',
-            { resource_type: 'raw', type: 'upload', access_mode: 'public', public_id: cardAttachmentFile.originalname }
+            { resource_type: 'raw', public_id: cardAttachmentFile.originalname }
           )
         )
       )
