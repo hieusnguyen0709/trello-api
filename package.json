@@ -9,7 +9,9 @@
   },
   "scripts": {
     "lint": "eslint src --ext js --report-unused-disable-directives --max-warnings 0",
-    "test": "jest",
+    "test:unit": "jest --config jest.unit.config.js",
+    "test:integration": "jest --config jest.integration.config.js --runInBand",
+    "test": "yarn test:unit && yarn test:integration",
     "clean": "rimraf build && mkdir build",
     "build-babel": "babel ./src -d ./build/src",
     "build": "npm run clean && npm run build-babel",
@@ -52,6 +54,7 @@
     "babel-plugin-module-resolver": "^5.0.0",
     "eslint": "^8.47.0",
     "jest": "^30.4.2",
+    "mongodb-memory-server": "^11.2.0",
     "nodemon": "^3.0.1",
     "rimraf": "^6.0.1"
   }
