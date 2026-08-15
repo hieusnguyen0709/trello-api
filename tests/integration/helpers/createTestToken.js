@@ -6,9 +6,13 @@ export const createTestToken = async (user) => {
         _id: user._id.toString()
     }
 
+    const secretSignature =
+        process.env.ACCESS_TOKEN_SECRET_SIGNATURE ||
+        env.ACCESS_TOKEN_SECRET_SIGNATURE
+
     return await JwtProvider.generateToken(
         userInfo,
-        env.ACCESS_TOKEN_SECRET_SIGNATURE,
+        secretSignature,
         '1h'
     )
 }
