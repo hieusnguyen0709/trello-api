@@ -11,6 +11,11 @@ export const corsOptions = {
       return callback(null, true)
     }
 
+    // Ở dev mode, tự động chấp nhận mọi origin từ localhost
+    if (env.BUILD_MODE === 'dev' && origin?.startsWith('http://localhost:')) {
+      return callback(null, true)
+    }
+
     // Ngược lại sẽ là môi trường production
 
     // Kiểm tra xem origin có phải là domain được chấp nhận hay không
