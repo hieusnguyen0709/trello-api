@@ -4,5 +4,6 @@ module.exports = {
     globalSetup: './tests/integration/globalSetup.js',
     globalTeardown: './tests/integration/globalTeardown.js',
     clearMocks: true,
-    automock: false
+    automock: false,
+    maxWorkers: 1
 }

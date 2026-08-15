@@ -7,6 +7,14 @@ export const errorHandlingMiddleware = (err, req, res, next) => {
   // Nếu dev không cẩn thận thiếu statusCode thì mặc định sẽ để code 500 INTERNAL_SERVER_ERROR
   if (!err.statusCode) err.statusCode = StatusCodes.INTERNAL_SERVER_ERROR
 
+  if (
+    err.name === 'BSONError' ||
+    err.message?.startsWith('BSONError:')
+  ) {
+    err.statusCode = StatusCodes.BAD_REQUEST
+    err.message = 'Invalid ObjectId format.'
+  }
+
   // Tạo ra một biến responseError để kiểm soát những gì muốn trả về
   const responseError = {
     statusCode: err.statusCode,
