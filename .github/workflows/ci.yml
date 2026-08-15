@@ -153,6 +153,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            sudo docker system prune -af
             aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 554392673060.dkr.ecr.us-east-1.amazonaws.com
             sudo docker pull 554392673060.dkr.ecr.us-east-1.amazonaws.com/trello-api:latest
             sudo docker stop trello-api || true
