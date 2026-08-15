@@ -1,0 +1,5 @@
+process.env.ACCESS_TOKEN_SECRET_SIGNATURE = process.env.ACCESS_TOKEN_SECRET_SIGNATURE || 'test_access_token_secret_key_123456789'
+process.env.REFRESH_TOKEN_SECRET_SIGNATURE = process.env.REFRESH_TOKEN_SECRET_SIGNATURE || 'test_refresh_token_secret_key_123456789'
+process.env.ACCESS_TOKEN_LIFE = '1h'
+process.env.REFRESH_TOKEN_LIFE = '14d'
+process.env.BUILD_MODE = 'test'

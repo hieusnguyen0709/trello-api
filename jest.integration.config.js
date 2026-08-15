@@ -3,6 +3,8 @@ module.exports = {
     modulePathIgnorePatterns: ['.*/__mocks__/.*'],
     globalSetup: './tests/integration/globalSetup.js',
     globalTeardown: './tests/integration/globalTeardown.js',
+    setupFiles: ['./tests/integration/setupEnv.js'],
     clearMocks: true,
-    automock: false
+    automock: false,
+    maxWorkers: 1
 }

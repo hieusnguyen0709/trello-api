@@ -14,11 +14,11 @@ const createNew = async (req, res, next) => {
             'string.trim': 'Title must not have leading or trailing whitespace'
         }),
         description: Joi.string().required().min(3).max(255).trim().strict().messages({
-            'any.required': 'Title is required',
-            'string.empty': 'Title is not allowed to be empty',
-            'string.min': 'Title length must be at least 3 characters long',
-            'string.max': 'Title length must be less than or equal to 256 characters long',
-            'string.trim': 'Title must not have leading or trailing whitespace'
+            'any.required': 'Description is required',
+            'string.empty': 'Description is not allowed to be empty',
+            'string.min': 'Description length must be at least 3 characters long',
+            'string.max': 'Description length must be less than or equal to 256 characters long',
+            'string.trim': 'Description must not have leading or trailing whitespace'
         }),
         type: Joi.string().valid(BOARD_TYPES.PUBLIC, BOARD_TYPES.PRIVATE).required()
     })
