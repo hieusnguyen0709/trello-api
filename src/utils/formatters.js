@@ -17,6 +17,12 @@ export const pickUser = (user) => {
   return pick(user, ['_id', 'email', 'username', 'displayName', 'avatar', 'role', 'isActive', 'createdAt', 'updatedAt'])
 }
 
+/**
+ * Extracts a Cloudinary public ID from an uploaded asset URL.
+ *
+ * @param {string} cloudinaryUrl - The Cloudinary URL to parse.
+ * @returns {string|null} The public ID without its version prefix, or `null` when the URL is invalid.
+ */
 export const extractPublicId = (cloudinaryUrl) => {
   const decodedUrl = decodeURIComponent(cloudinaryUrl)
 
