@@ -80,7 +80,7 @@ describe('Integration: boardService.moveCardToDifferentColumn', () => {
         // 3. Kiểm tra Column mới trong DB (đã được thêm card vào cuối)
         const nextColumnInDb = await GET_DB().collection('columns').findOne({ _id: nextColumnId })
         expect(nextColumnInDb.cardOrderIds).toHaveLength(2)
-        expect(nextColumnInDb.cardOrderIds.map(id => id.toString())).toContain(currentCardId.toString())
+        expect(nextColumnInDb.cardOrderIds.map(id => id.toString())).toEqual([remainingCardId.toString(), currentCardId.toString()])
 
         // 4. Kiểm tra Card trong DB (đã đổi columnId sang nextColumnId)
         const cardInDb = await GET_DB().collection('cards').findOne({ _id: currentCardId })
