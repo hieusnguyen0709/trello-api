@@ -55,12 +55,7 @@ const verifyAccount = async (reqBody) => {
             throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Token is invalid')
         }
 
-        const updateData = {
-            isActive: true,
-            verifyToken: null
-        }
-
-        const updatedUser = await userModel.update(existUser._id, updateData)
+        const updatedUser = await userModel.verifyAccount(existUser._id)
 
         return pickUser(updatedUser)
     } catch (error) {

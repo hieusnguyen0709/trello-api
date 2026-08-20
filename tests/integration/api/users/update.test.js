@@ -21,6 +21,7 @@ const request = supertest(app)
 
 describe('API Integration: PUT /v1/users/update', () => {
     const rawPassword = 'Password123!'
+    const newPassword = 'NewPassword123!'
     let activeUser
     let accessToken
 
@@ -79,8 +80,6 @@ describe('API Integration: PUT /v1/users/update', () => {
     })
 
     it('Should return 200 OK when updating password with valid current_password', async () => {
-        const newPassword = 'NewPassword123!'
-
         const res = await request
             .put('/v1/users/update')
             .set('Cookie', [`accessToken=${accessToken}`])
@@ -143,5 +142,45 @@ describe('API Integration: PUT /v1/users/update', () => {
             })
 
         expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY)
+    })
+
+    it('Should not allow updating the user role', async () => {
+        const res = await request
+            .put('/v1/users/update')
+            .set('Cookie', [`accessToken=${accessToken}`])
+            .send({ role: 'admin' })
+
+        expect(res.status).toBe(StatusCodes.OK)
+
+        const dbUser = await GET_DB().collection('users').findOne({ _id: new ObjectId(activeUser._id) })
+        expect(dbUser.role).toBe('client')
+    })
+
+    it('Should not persist current_password when new_password is missing', async () => {
+        const res = await request
+            .put('/v1/users/update')
+            .set('Cookie', [`accessToken=${accessToken}`])
+            .send({ current_password: rawPassword })
+
+        expect(res.status).toBe(StatusCodes.OK)
+
+        const dbUser = await GET_DB().collection('users').findOne({ _id: new ObjectId(activeUser._id) })
+        expect(bcryptjs.compareSync(rawPassword, dbUser.password)).toBeTruthy()
+        expect(dbUser.current_password).toBeUndefined()
+        expect(dbUser.new_password).toBeUndefined()
+    })
+
+    it('Should not persist new_password when current_password is missing', async () => {
+        const res = await request
+            .put('/v1/users/update')
+            .set('Cookie', [`accessToken=${accessToken}`])
+            .send({ new_password: newPassword })
+
+        expect(res.status).toBe(StatusCodes.OK)
+
+        const dbUser = await GET_DB().collection('users').findOne({ _id: new ObjectId(activeUser._id) })
+        expect(bcryptjs.compareSync(rawPassword, dbUser.password)).toBeTruthy()
+        expect(dbUser.current_password).toBeUndefined()
+        expect(dbUser.new_password).toBeUndefined()
     })
 })
