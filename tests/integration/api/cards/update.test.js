@@ -140,6 +140,7 @@ describe('API Integration: PUT /v1/cards/:id', () => {
         // sẽ trả về null nếu không tìm thấy — cần xác nhận API xử lý case này thế nào
         // (có thể đang trả 200 với body null, thay vì 404 - đây có thể là điểm cần cải thiện)
         // console.log('Response khi card không tồn tại:', res.status, res.body)
+        expect(res.status).toBe(StatusCodes.NOT_FOUND)
     })
 
     it('Should return 404 Not Found when card does not exist', async () => {
