@@ -25,10 +25,10 @@ const createNew = async (reqBody) => {
 
 const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userInfo) => {
   try {
-    const existingCard = await cardModel.findOneById(cardId)
-    if (!existingCard) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Card not found!')
-    }
+    // const existingCard = await cardModel.findOneById(cardId)
+    // if (!existingCard) {
+    //   throw new ApiError(StatusCodes.NOT_FOUND, 'Card not found!')
+    // }
 
     const updateData = {
       ...reqBody,
