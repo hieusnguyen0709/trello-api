@@ -1,6 +1,7 @@
 import { boardService } from '~/services/boardService'
 import { CONNECT_DB, CLOSE_DB, GET_DB } from '~/config/mongodb'
 import { createTestUser } from '../../helpers/createTestUser'
+import { createTestBoard } from '../../helpers/createTestBoard'
 import { ObjectId } from 'mongodb'
 
 describe('Integration: boardService.update', () => {
@@ -11,21 +12,11 @@ describe('Integration: boardService.update', () => {
         await CONNECT_DB()
         testUser = await createTestUser()
 
-        const boardResult = await GET_DB().collection('boards').insertOne({
+        const board = await createTestBoard({
             title: 'Board Test Update',
-            slug: 'board-test-update',
-            description: 'Board test update',
-            type: 'public',
-            ownerIds: [testUser._id],
-            memberIds: [],
-            columnOrderIds: [],
-            labelIds: [],
-            _destroy: false,
-            createdAt: Date.now(),
-            updatedAt: null
+            ownerIds: [testUser._id]
         })
-
-        boardId = boardResult.insertedId
+        boardId = board._id
     })
 
     afterAll(async () => {

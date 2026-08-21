@@ -1,6 +1,9 @@
 import { boardService } from '~/services/boardService'
 import { CONNECT_DB, CLOSE_DB, GET_DB } from '~/config/mongodb'
 import { createTestUser } from '../../helpers/createTestUser'
+import { createTestBoard } from '../../helpers/createTestBoard'
+import { createTestColumn } from '../../helpers/createTestColumn'
+import { createTestCard} from '../../helpers/createTestCard'
 import { ObjectId } from 'mongodb'
 import StatusCodes from 'http-status-codes'
 
@@ -15,27 +18,18 @@ describe('Integration: boardService.getDetails', () => {
         testUser = await createTestUser()
 
         // Tạo 1 Board
-        const boardResult = await GET_DB().collection('boards').insertOne({
+        const board = await createTestBoard({
             title: 'Board Test getDetails',
-            slug: 'board-test-getdetails',
-            description: 'Mô tả test getDetails',
-            type: 'public',
-            ownerIds: [testUser._id],
-            memberIds: [],
-            columnOrderIds: [],
-            _destroy: false,
-            createdAt: Date.now()
+            ownerIds: [testUser._id]
         })
-        boardId = boardResult.insertedId
+        boardId = board._id
 
         // Tạo 1 Column (boardId phải là ObjectId)
-        const columnResult = await GET_DB().collection('columns').insertOne({
+        const column = await createTestColumn({
             boardId: new ObjectId(boardId),
-            title: 'Column Todo Test',
-            cardOrderIds: [],
-            _destroy: false
+            title: 'Column Todo Test'
         })
-        columnId = columnResult.insertedId
+        columnId = column._id
 
         // Cập nhật columnOrderIds vào Board
         await GET_DB().collection('boards').updateOne(
@@ -44,13 +38,12 @@ describe('Integration: boardService.getDetails', () => {
         )
 
         // Tạo 1 Card thuộc Column trên (Lưu ý: columnId và boardId bắt buộc phải là ObjectId để .equals() hoạt động)
-        const cardResult = await GET_DB().collection('cards').insertOne({
+        const card = await createTestCard({
             boardId: new ObjectId(boardId),
             columnId: new ObjectId(columnId),
-            title: 'Card Task 1 Test',
-            _destroy: false
+            title: 'Card Task 1 Test'
         })
-        cardId = cardResult.insertedId
+        cardId = card._id
     })
 
     afterAll(async () => {
