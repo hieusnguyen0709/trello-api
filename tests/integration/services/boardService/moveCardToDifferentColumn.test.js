@@ -1,6 +1,9 @@
 import { boardService } from '~/services/boardService'
 import { CONNECT_DB, CLOSE_DB, GET_DB } from '~/config/mongodb'
 import { createTestUser } from '../../helpers/createTestUser'
+import { createTestBoard } from '../../helpers/createTestBoard'
+import { createTestColumn } from '../../helpers/createTestColumn'
+import { createTestCard} from '../../helpers/createTestCard'
 import { ObjectId } from 'mongodb'
 
 describe('Integration: boardService.moveCardToDifferentColumn', () => {
@@ -16,34 +19,35 @@ describe('Integration: boardService.moveCardToDifferentColumn', () => {
         testUser = await createTestUser()
 
         // 1. Tạo Board
-        const boardResult = await GET_DB().collection('boards').insertOne({
+        const board = await createTestBoard({
             title: 'Board Drag & Drop Test',
             ownerIds: [testUser._id]
         })
-        boardId = boardResult.insertedId
+        boardId = board._id
 
         // 2. Tạo Card sẽ được di chuyển
         currentCardId = new ObjectId()
         remainingCardId = new ObjectId()
 
-        // 3. Tạo Column cũ (chứa currentCardId)
-        const prevColumn = await GET_DB().collection('columns').insertOne({
-            boardId,
-            title: 'Column A (Old)',
-            cardOrderIds: [currentCardId]
-        })
-        prevColumnId = prevColumn.insertedId
+        // 3 & 4. Tạo Column cũ (chứa currentCardId) và Column mới (chứa remainingCardId)
+        const [prevColumn, nextColumn] = await createTestColumn([
+            {
+                boardId,
+                title: 'Column A (Old)',
+                cardOrderIds: [currentCardId]
+            },
+            {
+                boardId,
+                title: 'Column B (New)',
+                cardOrderIds: [remainingCardId]
+            }
+        ])
 
-        // 4. Tạo Column mới (chứa remainingCardId)
-        const nextColumn = await GET_DB().collection('columns').insertOne({
-            boardId,
-            title: 'Column B (New)',
-            cardOrderIds: [remainingCardId]
-        })
-        nextColumnId = nextColumn.insertedId
+        prevColumnId = prevColumn._id
+        nextColumnId = nextColumn._id
 
         // 5. Tạo Card trong Database
-        await GET_DB().collection('cards').insertOne({
+        await createTestCard({
             _id: currentCardId,
             boardId,
             columnId: prevColumnId,

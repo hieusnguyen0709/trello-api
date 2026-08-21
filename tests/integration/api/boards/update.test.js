@@ -3,6 +3,7 @@ import app from '~/app'
 import { CONNECT_DB, CLOSE_DB, GET_DB } from '~/config/mongodb'
 import { createTestUser } from '../../helpers/createTestUser'
 import { createTestToken } from '../../helpers/createTestToken'
+import { createTestBoard } from '../../helpers/createTestBoard'
 import { StatusCodes } from 'http-status-codes'
 
 const request = supertest(app)
@@ -17,16 +18,13 @@ describe('API Integration: PUT /v1/boards/:id', () => {
         testUser = await createTestUser()
         accessToken = await createTestToken(testUser)
 
-        const boardResult = await GET_DB().collection('boards').insertOne({
+        const board = await createTestBoard({
             title: 'Board Before API Update',
             description: 'Old Description',
-            type: 'public',
-            ownerIds: [testUser._id],
-            columnOrderIds: [],
-            _destroy: false
+            ownerIds: [testUser._id]
         })
 
-        boardId = boardResult.insertedId
+        boardId = board._id
     })
 
     afterAll(async () => {
@@ -56,9 +54,7 @@ describe('API Integration: PUT /v1/boards/:id', () => {
         expect(res.body.title).toBe(updatePayload.title)
         expect(res.body.description).toBe(updatePayload.description)
 
-        const boardInDb = await GET_DB()
-            .collection('boards')
-            .findOne({ _id: boardId })
+        const boardInDb = await GET_DB().collection('boards').findOne({ _id: boardId })
 
         expect(boardInDb.title).toBe(updatePayload.title)
         expect(boardInDb.description).toBe(updatePayload.description)

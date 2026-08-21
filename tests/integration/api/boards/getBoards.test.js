@@ -3,6 +3,7 @@ import app from '~/app'
 import { CONNECT_DB, CLOSE_DB, GET_DB } from '~/config/mongodb'
 import { createTestUser } from '../../helpers/createTestUser'
 import { createTestToken } from '../../helpers/createTestToken'
+import { createTestBoard } from '../../helpers/createTestBoard'
 import { StatusCodes } from 'http-status-codes'
 
 const request = supertest(app)
@@ -17,21 +18,19 @@ describe('API Integration: GET /v1/boards', () => {
         testUser = await createTestUser()
         accessToken = await createTestToken(testUser)
 
-        const result = await GET_DB().collection('boards').insertMany([
+        const createdBoards = await createTestBoard([
             {
                 title: 'Project Management',
                 type: 'public',
-                ownerIds: [testUser._id],
-                _destroy: false
+                ownerIds: [testUser._id]
             },
             {
                 title: 'Personal Task',
                 type: 'private',
-                ownerIds: [testUser._id],
-                _destroy: false
+                ownerIds: [testUser._id]
             }
         ])
-        Object.values(result.insertedIds).forEach(id => createdBoardIds.push(id))
+        createdBoards.forEach(board => createdBoardIds.push(board._id))
     })
 
     afterAll(async () => {

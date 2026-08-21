@@ -1,6 +1,7 @@
 import { boardService } from '~/services/boardService'
 import { CONNECT_DB, CLOSE_DB, GET_DB } from '~/config/mongodb'
 import { createTestUser } from '../../helpers/createTestUser'
+import { createTestBoard } from '../../helpers/createTestBoard'
 
 describe('Integration: boardService.getBoards', () => {
     let testUser1
@@ -13,39 +14,35 @@ describe('Integration: boardService.getBoards', () => {
         testUser2 = await createTestUser()
 
         // Thêm dữ liệu đa dạng để test đủ mọi góc cạnh của câu query
-        const boardsData = [
+        const createdBoards = await createTestBoard([
             {
                 title: 'Alpha Board',
                 type: 'public',
                 ownerIds: [testUser1._id],
-                memberIds: [],
-                _destroy: false
+                memberIds: []
             },
             {
                 title: 'Beta Board',
                 type: 'private',
                 ownerIds: [testUser2._id],
-                memberIds: [testUser1._id], // testUser1 là member
-                _destroy: false
+                memberIds: [testUser1._id] // testUser1 là member
             },
             {
                 title: 'Charlie Board (Deleted)',
                 type: 'public',
                 ownerIds: [testUser1._id],
                 memberIds: [],
-                _destroy: true // Đã bị xóa -> Không được trả về
+                _destroy: true // Ghi đè _destroy: true để test bộ lọc xóa mềm
             },
             {
                 title: 'Delta Board (Other User)',
                 type: 'public',
                 ownerIds: [testUser2._id],
-                memberIds: [], // testUser1 không thuộc board này -> Không được trả về
-                _destroy: false
+                memberIds: [] // testUser1 không thuộc board này -> Không được trả về
             }
-        ]
+        ])
 
-        const result = await GET_DB().collection('boards').insertMany(boardsData)
-        Object.values(result.insertedIds).forEach(id => createdBoardIds.push(id))
+        createdBoards.forEach(board => createdBoardIds.push(board._id))
     })
 
     afterAll(async () => {
