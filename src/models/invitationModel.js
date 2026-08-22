@@ -92,36 +92,36 @@ const update = async (invitationId, updateData) => {
 
 // Query tổng hợp (aggregate) để lấy những bản ghi invitation thuộc về một user cụ thể
 const findByUser = async (userId) => {
-    try {
-      const queryConditions = [
-        { inviteeId: new ObjectId(userId) }, // Tìm theo người được mời - Người đang thực hiện request
-        { _destroy: false }
-      ]
+  try {
+    const queryConditions = [
+      { inviteeId: new ObjectId(userId) }, // Tìm theo người được mời - Người đang thực hiện request
+      { _destroy: false }
+    ]
 
-      const results = await GET_DB().collection(INVITATION_COLLECTION_NAME).aggregate([
-        { $match: { $and: queryConditions } },
-        { $lookup: {
-          from: userModel.USER_COLLECTION_NAME,
-          localField: 'inviterId', // Người đi mời
-          foreignField: '_id',
-          as: 'inviter',
-          pipeline: [{ $project: { 'password': 0, 'verifyToken': 0 } }]
-        } },
-        { $lookup: {
-          from: userModel.USER_COLLECTION_NAME,
-          localField: 'inviteeId', // Người được mời
-          foreignField: '_id',
-          as: 'invitee',
-          pipeline: [{ $project: { 'password': 0, 'verifyToken': 0 } }]
-        } },
-        { $lookup: {
-          from: boardModel.BOARD_COLLECTION_NAME,
-          localField: 'boardInvitation.boardId',
-          foreignField: '_id',
-          as: 'board'
-        } }
-      ]).toArray()
-      return results
+    const results = await GET_DB().collection(INVITATION_COLLECTION_NAME).aggregate([
+      { $match: { $and: queryConditions } },
+      { $lookup: {
+        from: userModel.USER_COLLECTION_NAME,
+        localField: 'inviterId', // Người đi mời
+        foreignField: '_id',
+        as: 'inviter',
+        pipeline: [{ $project: { 'password': 0, 'verifyToken': 0 } }]
+      } },
+      { $lookup: {
+        from: userModel.USER_COLLECTION_NAME,
+        localField: 'inviteeId', // Người được mời
+        foreignField: '_id',
+        as: 'invitee',
+        pipeline: [{ $project: { 'password': 0, 'verifyToken': 0 } }]
+      } },
+      { $lookup: {
+        from: boardModel.BOARD_COLLECTION_NAME,
+        localField: 'boardInvitation.boardId',
+        foreignField: '_id',
+        as: 'board'
+      } }
+    ]).toArray()
+    return results
   } catch (error) {
     throw new Error(error)
   }
