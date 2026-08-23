@@ -115,4 +115,25 @@ describe('invitationService.updateBoardInvitation - Integration Test', () => {
             invitationService.updateBoardInvitation(invitee._id.toString(), testInvitation._id.toString(), BOARD_INVITATION_STATUS.ACCEPTED)
         ).rejects.toThrow('Board not found!')
     })
+
+    it('Throw 403 when the invitation does not belong to the calling user', async () => {
+        const strangerUser = await createTestUser()
+
+        await expect(
+            invitationService.updateBoardInvitation(
+                strangerUser._id.toString(),
+                testInvitation._id.toString(),
+                BOARD_INVITATION_STATUS.ACCEPTED
+            )
+        ).rejects.toThrow('This invitation does not belong to you!')
+
+        // Xác nhận invitation không bị đổi, board không bị thêm nhầm member
+        const invitationInDb = await GET_DB().collection('invitations').findOne({ _id: testInvitation._id })
+        expect(invitationInDb.boardInvitation.status).toBe(BOARD_INVITATION_STATUS.PENDING)
+
+        const boardInDb = await GET_DB().collection('boards').findOne({ _id: testBoard._id })
+        expect(boardInDb.memberIds).toHaveLength(0)
+
+        await GET_DB().collection('users').deleteOne({ _id: strangerUser._id })
+    })
 })

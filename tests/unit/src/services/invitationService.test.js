@@ -106,9 +106,22 @@ describe('invitationService.updateBoardInvitation', () => {
         ).rejects.toThrow('Invitation not found!')
     })
 
+    it('Throw a 403 ApiError when the invitation does not belong to the calling user', async () => {
+        invitationModel.findOneById.mockResolvedValue({
+            _id: 'invite1',
+            inviteeId: fakeObjectId('someone-else'),
+            boardInvitation: { boardId: 'board1', status: 'PENDING' }
+        })
+
+        await expect(
+            invitationService.updateBoardInvitation('user1', 'invite1', 'ACCEPTED')
+        ).rejects.toThrow('This invitation does not belong to you!')
+    })
+
     it('Throw a 404 ApiError when the board is not found', async () => {
         invitationModel.findOneById.mockResolvedValue({
             _id: 'invite1',
+            inviteeId: fakeObjectId('user1'),
             boardInvitation: { boardId: 'board1', status: 'PENDING' }
         })
         boardModel.findOneById.mockResolvedValue(null)
@@ -121,6 +134,7 @@ describe('invitationService.updateBoardInvitation', () => {
     it('Throw a 406 ApiError when accepting an invitation for a board the user already belongs to', async () => {
         invitationModel.findOneById.mockResolvedValue({
             _id: 'invite1',
+            inviteeId: fakeObjectId('user1'),
             boardInvitation: { boardId: 'board1', status: 'PENDING' }
         })
         boardModel.findOneById.mockResolvedValue({
@@ -137,6 +151,7 @@ describe('invitationService.updateBoardInvitation', () => {
     it('Preserve other boardInvitation fields (like boardId) when updating the status', async () => {
         invitationModel.findOneById.mockResolvedValue({
             _id: 'invite1',
+            inviteeId: fakeObjectId('user1'),
             boardInvitation: { boardId: 'board1', status: 'PENDING' }
         })
         boardModel.findOneById.mockResolvedValue({
@@ -159,6 +174,7 @@ describe('invitationService.updateBoardInvitation', () => {
     it('Push the user into the board members when the status becomes ACCEPTED', async () => {
         invitationModel.findOneById.mockResolvedValue({
             _id: 'invite1',
+            inviteeId: fakeObjectId('user1'),
             boardInvitation: { boardId: 'board1', status: 'PENDING' }
         })
         boardModel.findOneById.mockResolvedValue({
@@ -179,6 +195,7 @@ describe('invitationService.updateBoardInvitation', () => {
     it('Not push the user into board members when the status is not ACCEPTED', async () => {
         invitationModel.findOneById.mockResolvedValue({
             _id: 'invite1',
+            inviteeId: fakeObjectId('user1'),
             boardInvitation: { boardId: 'board1', status: 'PENDING' }
         })
         boardModel.findOneById.mockResolvedValue({
