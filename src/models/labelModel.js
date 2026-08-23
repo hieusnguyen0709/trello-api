@@ -78,11 +78,20 @@ export const findByTitleAndColor = async (boardId, title, color) => {
   }
 }
 
+const findOneById = async (labelId) => {
+  try {
+    return await GET_DB().collection(LABEL_COLLECTION_NAME).findOne({ _id: new ObjectId(labelId) })
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const labelModel = {
   LABEL_COLLECTION_NAME,
   createNew,
   findByBoardId,
   update,
   deleteOne,
-  findByTitleAndColor
+  findByTitleAndColor,
+  findOneById
 }

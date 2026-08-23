@@ -82,4 +82,21 @@ describe('API Integration: POST /v1/invitations/board', () => {
 
         expect(res.status).toBe(StatusCodes.UNAUTHORIZED)
     })
+
+    it('Return 403 when the inviter is not an owner/member of the board', async () => {
+        const strangerUser = await createTestUser()
+        const strangerToken = await createTestToken(strangerUser)
+
+        const res = await request
+            .post('/v1/invitations/board')
+            .set('Cookie', [`accessToken=${strangerToken}`])
+            .send({ inviteeEmail: invitee.email, boardId: testBoard._id.toString() })
+
+        expect(res.status).toBe(StatusCodes.FORBIDDEN)
+
+        const invitationsInDb = await GET_DB().collection('invitations').find({}).toArray()
+        expect(invitationsInDb).toHaveLength(0)
+
+        await GET_DB().collection('users').deleteOne({ _id: strangerUser._id })
+    })
 })

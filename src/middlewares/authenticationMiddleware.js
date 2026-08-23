@@ -4,7 +4,7 @@ import { env } from '~/config/environment'
 import ApiError from '~/utils/ApiError'
 
 // Middleware này sẽ đảm nhiệm việc quan trọng: Xác thực cái JWT accessToken nhận được từ phía FE có hợp lệ hay không
-const isAuthorized = async (req, res, next) => {
+const isAuthenticated = async (req, res, next) => {
     // Check token từ client
     const clientAccessToken = req.cookies?.accessToken
     if (!clientAccessToken) {
@@ -26,7 +26,7 @@ const isAuthorized = async (req, res, next) => {
         // Cho phép request đi tiếp
         next()
     } catch (error) {
-        // console.log('authMiddleware: ', error)
+        // console.log('authenticationMiddleware: ', error)
         // Nếu accessToken hết hạn (expired), trả về lỗi GONE-410 cho phía FE để gọi API refreshToken
         if (error?.message?.includes('jwt expired')) {
             next(new ApiError(StatusCodes.GONE, 'Need to refresh token.'))
@@ -38,4 +38,4 @@ const isAuthorized = async (req, res, next) => {
     }
 }
 
-export const authMiddleware = { isAuthorized }
+export const authenticationMiddleware = { isAuthenticated }

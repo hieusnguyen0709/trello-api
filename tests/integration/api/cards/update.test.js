@@ -127,6 +127,23 @@ describe('API Integration: PUT /v1/cards/:id', () => {
         expect(res.status).toBeGreaterThanOrEqual(400)
     })
 
+    it('Return 403 when user is not an owner/member of the board', async () => {
+        const strangerUser = await createTestUser()
+        const strangerToken = await createTestToken(strangerUser)
+
+        const res = await request
+            .put(`/v1/cards/${testCard._id}`)
+            .set('Cookie', [`accessToken=${strangerToken}`])
+            .send({ title: 'Hacked Title' })
+
+        expect(res.status).toBe(StatusCodes.FORBIDDEN)
+
+        const cardInDb = await GET_DB().collection('cards').findOne({ _id: testCard._id })
+        expect(cardInDb.title).not.toBe('Hacked Title')
+
+        await GET_DB().collection('users').deleteOne({ _id: strangerUser._id })
+    })
+
     // CARD KHÔNG TỒN TẠI
     // it('Should handle gracefully when card does not exist in DB', async () => {
     //     const fakeCardId = '6a882b81f1c8967a561e6799' // ObjectId hợp lệ nhưng không tồn tại

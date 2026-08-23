@@ -93,4 +93,21 @@ describe('API Integration: POST /v1/labels/toggle', () => {
 
         expect(res.status).toBe(StatusCodes.UNAUTHORIZED)
     })
+
+    it('Return 403 when user is not an owner/member of the board', async () => {
+        const strangerUser = await createTestUser()
+        const strangerToken = await createTestToken(strangerUser)
+
+        const res = await request
+            .post('/v1/labels/toggle')
+            .set('Cookie', [`accessToken=${strangerToken}`])
+            .send({ cardId: testCard._id.toString(), labelId: testLabel._id.toString() })
+
+        expect(res.status).toBe(StatusCodes.FORBIDDEN)
+
+        const cardInDb = await GET_DB().collection('cards').findOne({ _id: testCard._id })
+        expect(cardInDb.labelIds).toHaveLength(0)
+
+        await GET_DB().collection('users').deleteOne({ _id: strangerUser._id })
+    })
 })

@@ -74,4 +74,21 @@ describe('API Integration: PUT /v1/labels/:id', () => {
 
         expect(res.status).toBe(StatusCodes.UNAUTHORIZED)
     })
+
+    it('Return 403 when user is not an owner/member of the board', async () => {
+        const strangerUser = await createTestUser()
+        const strangerToken = await createTestToken(strangerUser)
+
+        const res = await request
+            .put(`/v1/labels/${testLabel._id}`)
+            .set('Cookie', [`accessToken=${strangerToken}`])
+            .send({ title: 'Hacked Title' })
+
+        expect(res.status).toBe(StatusCodes.FORBIDDEN)
+
+        const labelInDb = await GET_DB().collection('labels').findOne({ _id: testLabel._id })
+        expect(labelInDb.title).not.toBe('Hacked Title')
+
+        await GET_DB().collection('users').deleteOne({ _id: strangerUser._id })
+    })
 })
