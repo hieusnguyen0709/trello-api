@@ -1,18 +1,19 @@
 import express from 'express'
 import { labelController } from '~/controllers/labelController'
 import { labelValidation } from '~/validations/labelValidation'
-import { authMiddleware } from '~/middlewares/authMiddleware'
+import { authenticationMiddleware as authn } from '~/middlewares/authenticationMiddleware'
+import { authorizationMiddleware as authz } from '~/middlewares/authorizationMiddleware'
 
 const Router = express.Router()
 
 Router.route('/')
-    .post(authMiddleware.isAuthorized, labelValidation.createNew, labelController.createNew)
+    .post(authn.isAuthenticated, labelValidation.createNew, authz.hasBoardAccess(authz.resolvers.fromBodyBoardId), labelController.createNew)
 
 Router.route('/:id')
-    .put(authMiddleware.isAuthorized, labelValidation.update, labelController.update)
-    .delete(authMiddleware.isAuthorized, labelController.deleteOne)
+    .put(authn.isAuthenticated, labelValidation.update, authz.hasBoardAccess(authz.resolvers.fromLabelParamsId), labelController.update)
+    .delete(authn.isAuthenticated, authz.hasBoardAccess(authz.resolvers.fromLabelParamsId), labelController.deleteOne)
 
 Router.route('/toggle')
-    .post(authMiddleware.isAuthorized, labelValidation.toggle, labelController.toggle)
+    .post(authn.isAuthenticated, labelValidation.toggle, authz.hasBoardAccess(authz.resolvers.fromToggleLabelBody), labelController.toggle)
 
 export const labelRoute = Router

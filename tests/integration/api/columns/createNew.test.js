@@ -118,4 +118,21 @@ describe('API Integration: POST /v1/columns', () => {
 
         expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY) // 422
     })
+
+    it('Return 403 when user is not an owner/member of the board', async () => {
+        const strangerUser = await createTestUser()
+        const strangerToken = await createTestToken(strangerUser)
+
+        const res = await request
+            .post('/v1/columns')
+            .set('Cookie', [`accessToken=${strangerToken}`])
+            .send({ boardId: testBoard._id.toString(), title: 'Hacked Column' })
+
+        expect(res.status).toBe(StatusCodes.FORBIDDEN)
+
+        const columnsInDb = await GET_DB().collection('columns').find({ boardId: testBoard._id }).toArray()
+        expect(columnsInDb.some(c => c.title === 'Hacked Column')).toBe(false)
+
+        await GET_DB().collection('users').deleteOne({ _id: strangerUser._id })
+    })
 })

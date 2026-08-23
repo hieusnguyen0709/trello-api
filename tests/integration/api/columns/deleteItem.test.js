@@ -108,4 +108,20 @@ describe('API Integration: DELETE /v1/columns/:id', () => {
 
         expect(res.status).toBe(StatusCodes.NOT_FOUND) // 404
     })
+
+    it('Return 403 when user is not an owner/member of the board', async () => {
+        const strangerUser = await createTestUser()
+        const strangerToken = await createTestToken(strangerUser)
+
+        const res = await request
+            .delete(`/v1/columns/${testColumn._id}`)
+            .set('Cookie', [`accessToken=${strangerToken}`])
+
+        expect(res.status).toBe(StatusCodes.FORBIDDEN)
+
+        const columnInDb = await GET_DB().collection('columns').findOne({ _id: testColumn._id })
+        expect(columnInDb).not.toBeNull()
+
+        await GET_DB().collection('users').deleteOne({ _id: strangerUser._id })
+    })
 })

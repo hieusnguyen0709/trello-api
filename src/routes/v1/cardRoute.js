@@ -1,22 +1,24 @@
 import express from 'express'
 import { cardValidation } from '~/validations/cardValidation'
 import { cardController } from '~/controllers/cardController'
-import { authMiddleware } from '~/middlewares/authMiddleware'
+import { authenticationMiddleware as authn } from '~/middlewares/authenticationMiddleware'
+import { authorizationMiddleware as authz } from '~/middlewares/authorizationMiddleware'
 import { multerUploadMiddleware } from '~/middlewares/multerUploadMiddleware'
 
 const Router = express.Router()
 
 Router.route('/')
-    .post(authMiddleware.isAuthorized, cardValidation.createNew, cardController.createNew)
+  .post(authn.isAuthenticated, cardValidation.createNew, authz.hasBoardAccess(authz.resolvers.fromBodyBoardId), cardController.createNew)
 
 Router.route('/:id')
   .put(
-    authMiddleware.isAuthorized,
+    authn.isAuthenticated,
     multerUploadMiddleware.upload.fields([
       { name: 'cardCover', maxCount: 1 },
       { name: 'cardAttachments', maxCount: 10 }
     ]),
     cardValidation.update,
+    authz.hasBoardAccess(authz.resolvers.fromCardParamsId),
     cardController.update
   )
 

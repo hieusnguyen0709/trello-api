@@ -1,19 +1,20 @@
 import express from 'express'
 import { boardValidation } from '~/validations/boardValidation'
 import { boardController } from '~/controllers/boardController'
-import { authMiddleware } from '~/middlewares/authMiddleware'
+import { authenticationMiddleware as authn } from '~/middlewares/authenticationMiddleware'
+import { authorizationMiddleware as authz } from '~/middlewares/authorizationMiddleware'
 
 const Router = express.Router()
 
 Router.route('/')
-    .get(authMiddleware.isAuthorized, boardController.getBoards)
-    .post(authMiddleware.isAuthorized, boardValidation.createNew, boardController.createNew)
+    .get(authn.isAuthenticated, boardController.getBoards)
+    .post(authn.isAuthenticated, boardValidation.createNew, boardController.createNew)
 
 Router.route('/:id')
-    .get(authMiddleware.isAuthorized, boardController.getDetails)
-    .put(authMiddleware.isAuthorized, boardValidation.update, boardController.update)
+    .get(authn.isAuthenticated, boardController.getDetails)
+    .put(authn.isAuthenticated, boardValidation.update, authz.hasBoardAccess(authz.resolvers.fromParamsId), boardController.update)
 
 Router.route('/supports/moving_card')
-    .put(authMiddleware.isAuthorized, boardValidation.moveCardToDifferentColumn, boardController.moveCardToDifferentColumn)
+    .put(authn.isAuthenticated, boardValidation.moveCardToDifferentColumn, authz.hasBoardAccess(authz.resolvers.fromMoveCardBody), boardController.moveCardToDifferentColumn)
 
 export const boardRoute = Router

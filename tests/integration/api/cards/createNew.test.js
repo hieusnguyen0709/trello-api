@@ -127,4 +127,25 @@ describe('API Integration: POST /v1/cards', () => {
 
         expect(res.status).toBe(StatusCodes.UNAUTHORIZED)
     })
+
+    it('Return 403 when user is not an owner/member of the board', async () => {
+        const strangerUser = await createTestUser()
+        const strangerToken = await createTestToken(strangerUser)
+
+        const res = await request
+            .post('/v1/cards')
+            .set('Cookie', [`accessToken=${strangerToken}`])
+            .send({
+                boardId: testBoard._id.toString(),
+                columnId: testColumn._id.toString(),
+                title: 'Hacked Card'
+            })
+
+        expect(res.status).toBe(StatusCodes.FORBIDDEN)
+
+        const cardsInDb = await GET_DB().collection('cards').find({ boardId: testBoard._id }).toArray()
+        expect(cardsInDb.some(c => c.title === 'Hacked Card')).toBe(false)
+
+        await GET_DB().collection('users').deleteOne({ _id: strangerUser._id })
+    })
 })

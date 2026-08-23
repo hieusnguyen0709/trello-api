@@ -1,15 +1,16 @@
 import express from 'express'
 import { columnValidation } from '~/validations/columnValidation'
 import { columnController } from '~/controllers/columnController'
-import { authMiddleware } from '~/middlewares/authMiddleware'
+import { authenticationMiddleware as authn } from '~/middlewares/authenticationMiddleware'
+import { authorizationMiddleware as authz } from '~/middlewares/authorizationMiddleware'
 
 const Router = express.Router()
 
 Router.route('/')
-    .post(authMiddleware.isAuthorized, columnValidation.createNew, columnController.createNew)
+    .post(authn.isAuthenticated, columnValidation.createNew, authz.hasBoardAccess(authz.resolvers.fromBodyBoardId), columnController.createNew)
 
 Router.route('/:id')
-    .put(authMiddleware.isAuthorized, columnValidation.update, columnController.update)
-    .delete(authMiddleware.isAuthorized, columnValidation.deleteItem, columnController.deleteItem)
+    .put(authn.isAuthenticated, columnValidation.update, authz.hasBoardAccess(authz.resolvers.fromColumnParamsId), columnController.update)
+    .delete(authn.isAuthenticated, columnValidation.deleteItem, authz.hasBoardAccess(authz.resolvers.fromColumnParamsId), columnController.deleteItem)
 
 export const columnRoute = Router

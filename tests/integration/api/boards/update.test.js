@@ -77,4 +77,21 @@ describe('API Integration: PUT /v1/boards/:id', () => {
         expect(res.status).toBe(StatusCodes.BAD_REQUEST)
         expect(res.body.message).toBe('Invalid ObjectId format.')
     })
+
+    it('Return 403 when user is not an owner/member of the board', async () => {
+        const strangerUser = await createTestUser()
+        const strangerToken = await createTestToken(strangerUser)
+
+        const res = await request
+            .put(`/v1/boards/${boardId}`)
+            .set('Cookie', [`accessToken=${strangerToken}`])
+            .send({ title: 'Hacked Title' })
+
+        expect(res.status).toBe(StatusCodes.FORBIDDEN)
+
+        const boardInDb = await GET_DB().collection('boards').findOne({ _id: boardId })
+        expect(boardInDb.title).not.toBe('Hacked Title')
+
+        await GET_DB().collection('users').deleteOne({ _id: strangerUser._id })
+    })
 })
