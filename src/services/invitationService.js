@@ -71,6 +71,11 @@ const updateBoardInvitation = async (userId, invitationId, status) => {
     const getInvitation = await invitationModel.findOneById(invitationId)
     if (!getInvitation) throw new ApiError(StatusCodes.NOT_FOUND, 'Invitation not found!')
 
+    // Tránh trường hợp người khác cố tình update invitation của người khác, nên check xem invitation này có thuộc về userId đang request hay không.
+    if (getInvitation.inviteeId.toString() !== userId) {
+        throw new ApiError(StatusCodes.FORBIDDEN, 'This invitation does not belong to you!')
+    }
+
     // Sau khi có Invitation rồi thì lấy full thông tin của board
     const boardId = getInvitation.boardInvitation.boardId
     const getBoard = await boardModel.findOneById(boardId)

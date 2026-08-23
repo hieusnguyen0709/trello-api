@@ -88,4 +88,21 @@ describe('API Integration: PUT /v1/invitations/board/:invitationId', () => {
 
         expect(res.status).toBe(StatusCodes.UNAUTHORIZED)
     })
+
+    it('Should return 403 when trying to accept/reject someone else\'s invitation', async () => {
+        const strangerUser = await createTestUser()
+        const strangerToken = await createTestToken(strangerUser)
+
+        const res = await request
+            .put(`/v1/invitations/board/${testInvitation._id}`)
+            .set('Cookie', [`accessToken=${strangerToken}`])
+            .send({ status: BOARD_INVITATION_STATUS.ACCEPTED })
+
+        expect(res.status).toBe(StatusCodes.FORBIDDEN)
+
+        const boardInDb = await GET_DB().collection('boards').findOne({ _id: testBoard._id })
+        expect(boardInDb.memberIds).toHaveLength(0)
+
+        await GET_DB().collection('users').deleteOne({ _id: strangerUser._id })
+    })
 })
