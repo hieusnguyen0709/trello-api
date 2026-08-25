@@ -2,11 +2,15 @@ import { boardService } from '~/services/boardService'
 import { boardModel } from '~/models/boardModel'
 import { columnModel } from '~/models/columnModel'
 import { cardModel } from '~/models/cardModel'
+import { labelModel } from '~/models/labelModel'
+import { invitationModel } from '~/models/invitationModel'
 
 jest.mock('~/config/mongodb')
 jest.mock('~/models/boardModel')
 jest.mock('~/models/columnModel')
 jest.mock('~/models/cardModel')
+jest.mock('~/models/labelModel')
+jest.mock('~/models/invitationModel')
 
 describe('boardService.createNew', () => {
     it('Creates a slug from the title and passes it to boardModel.createNew, then fetches the full board using the inserted ID', async () => {
@@ -285,5 +289,97 @@ describe('boardService.getBoards', () => {
         const result = await boardService.getBoards('user1', 1, 12, {})
 
         expect(result).toEqual(fakeResults)
+    })
+})
+
+describe('boardService.delete', () => {
+    it('Delete the board and all related data when user is the owner', async () => {
+        const userId = 'user123'
+        const boardId = 'board456'
+
+        boardModel.findOneById.mockResolvedValue({
+            _id: boardId,
+            ownerIds: [userId]
+        })
+
+        cardModel.deleteManyByBoardId.mockResolvedValue({})
+        columnModel.deleteManyByBoardId.mockResolvedValue({})
+        labelModel.deleteManyByBoardId.mockResolvedValue({})
+        invitationModel.deleteManyByBoardId.mockResolvedValue({})
+        boardModel.deleteOneById.mockResolvedValue({})
+
+        const result = await boardService.deleteItem(userId, boardId)
+
+        expect(boardModel.findOneById).toHaveBeenCalledWith(boardId)
+
+        expect(cardModel.deleteManyByBoardId).toHaveBeenCalledWith(boardId)
+        expect(columnModel.deleteManyByBoardId).toHaveBeenCalledWith(boardId)
+        expect(labelModel.deleteManyByBoardId).toHaveBeenCalledWith(boardId)
+        expect(invitationModel.deleteManyByBoardId).toHaveBeenCalledWith(boardId)
+        expect(boardModel.deleteOneById).toHaveBeenCalledWith(boardId)
+
+        expect(result).toEqual({
+            deleteResult: 'Board, its Columns, Cards, and Labels deleted successfully!'
+        })
+    })
+
+     it('Throw a 404 ApiError when the board is not found', async () => {
+        const userId = 'user123'
+        const boardId = 'board456'
+
+        boardModel.findOneById.mockResolvedValue(null)
+
+        await expect(
+            boardService.deleteItem(userId, boardId)
+        ).rejects.toThrow('Board not found!')
+
+        expect(cardModel.deleteManyByBoardId).not.toHaveBeenCalled()
+        expect(columnModel.deleteManyByBoardId).not.toHaveBeenCalled()
+        expect(labelModel.deleteManyByBoardId).not.toHaveBeenCalled()
+        expect(invitationModel.deleteManyByBoardId).not.toHaveBeenCalled()
+        expect(boardModel.deleteOneById).not.toHaveBeenCalled()
+    })
+
+    it('Throw a 403 ApiError when the user is not the board owner', async () => {
+        const userId = 'user123'
+        const boardId = 'board456'
+
+        boardModel.findOneById.mockResolvedValue({
+            _id: boardId,
+            ownerIds: ['anotherUser']
+        })
+
+        await expect(
+            boardService.deleteItem(userId, boardId)
+        ).rejects.toThrow('Only the board owner can delete this board!')
+
+        expect(cardModel.deleteManyByBoardId).not.toHaveBeenCalled()
+        expect(columnModel.deleteManyByBoardId).not.toHaveBeenCalled()
+        expect(labelModel.deleteManyByBoardId).not.toHaveBeenCalled()
+        expect(invitationModel.deleteManyByBoardId).not.toHaveBeenCalled()
+        expect(boardModel.deleteOneById).not.toHaveBeenCalled()
+    })
+
+    it('Stop the cascade delete when deleting cards fails', async () => {
+        const userId = 'user123'
+        const boardId = 'board456'
+
+        boardModel.findOneById.mockResolvedValue({
+            _id: boardId,
+            ownerIds: [userId]
+        })
+
+        cardModel.deleteManyByBoardId.mockRejectedValue(
+            new Error('Failed to delete cards')
+        )
+
+        await expect(
+            boardService.deleteItem(userId, boardId)
+        ).rejects.toThrow('Failed to delete cards')
+
+        expect(columnModel.deleteManyByBoardId).not.toHaveBeenCalled()
+        expect(labelModel.deleteManyByBoardId).not.toHaveBeenCalled()
+        expect(invitationModel.deleteManyByBoardId).not.toHaveBeenCalled()
+        expect(boardModel.deleteOneById).not.toHaveBeenCalled()
     })
 })
