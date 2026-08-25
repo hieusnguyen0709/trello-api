@@ -56,10 +56,22 @@ const getBoards = async (req, res, next) => {
     }
 }
 
+const deleteItem = async (req, res, next) => {
+  try {
+    const userId = req.jwtDecoded._id
+    const boardId = req.params.id
+    const result = await boardService.deleteItem(userId, boardId)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const boardController = {
     createNew,
     getDetails,
     update,
     moveCardToDifferentColumn,
-    getBoards
+    getBoards,
+    deleteItem
 }

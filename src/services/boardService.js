@@ -2,6 +2,8 @@ import { slugify } from '~/utils/formatters'
 import { boardModel } from '~/models/boardModel'
 import { columnModel } from '~/models/columnModel'
 import { cardModel } from '~/models/cardModel'
+import { labelModel } from '~/models/labelModel'
+import { invitationModel } from '~/models/invitationModel'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { cloneDeep } from 'lodash'
@@ -96,10 +98,38 @@ const getBoards = async (userId, page, itemsPerPage, queryFilters) => {
     }
 }
 
+const deleteItem = async (userId, boardId) => {
+  try {
+    const targetBoard = await boardModel.findOneById(boardId)
+
+    if (!targetBoard) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Board not found!')
+    }
+
+    // Chỉ owner mới được xoá board — khác với update/moveCard (owner/member ngang quyền)
+    const isOwner = targetBoard.ownerIds.some(id => id.toString() === userId)
+    if (!isOwner) {
+      throw new ApiError(StatusCodes.FORBIDDEN, 'Only the board owner can delete this board!')
+    }
+
+    // Dọn dẹp cascade: cards -> columns -> labels -> invitations -> cuối cùng mới xoá board
+    await cardModel.deleteManyByBoardId(boardId)
+    await columnModel.deleteManyByBoardId(boardId)
+    await labelModel.deleteManyByBoardId(boardId)
+    await invitationModel.deleteManyByBoardId(boardId)
+    await boardModel.deleteOneById(boardId)
+
+    return { deleteResult: 'Board, its Columns, Cards, and Labels deleted successfully!' }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const boardService = {
     createNew,
     getDetails,
     update,
     moveCardToDifferentColumn,
-    getBoards
+    getBoards,
+    deleteItem
 }
