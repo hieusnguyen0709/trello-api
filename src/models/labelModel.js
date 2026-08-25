@@ -86,6 +86,15 @@ const findOneById = async (labelId) => {
   }
 }
 
+const deleteManyByBoardId = async (boardId) => {
+  try {
+    const result = await GET_DB().collection(LABEL_COLLECTION_NAME).deleteMany({ boardId: new ObjectId(boardId) })
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const labelModel = {
   LABEL_COLLECTION_NAME,
   createNew,
@@ -93,5 +102,6 @@ export const labelModel = {
   update,
   deleteOne,
   findByTitleAndColor,
-  findOneById
+  findOneById,
+  deleteManyByBoardId
 }

@@ -13,6 +13,7 @@ Router.route('/')
 Router.route('/:id')
     .get(authn.isAuthenticated, boardController.getDetails)
     .put(authn.isAuthenticated, boardValidation.update, authz.hasBoardAccess(authz.resolvers.fromParamsId), boardController.update)
+    .delete(authn.isAuthenticated, boardValidation.deleteItem, authz.hasBoardAccess(authz.resolvers.fromParamsId), boardController.deleteItem)
 
 Router.route('/supports/moving_card')
     .put(authn.isAuthenticated, boardValidation.moveCardToDifferentColumn, authz.hasBoardAccess(authz.resolvers.fromMoveCardBody), boardController.moveCardToDifferentColumn)
