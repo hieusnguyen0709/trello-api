@@ -4,6 +4,7 @@ import { columnModel } from '~/models/columnModel'
 import { cardModel } from '~/models/cardModel'
 import { labelModel } from '~/models/labelModel'
 import { invitationModel } from '~/models/invitationModel'
+import randomColor from 'randomcolor'
 
 jest.mock('~/config/mongodb')
 jest.mock('~/models/boardModel')
@@ -11,9 +12,11 @@ jest.mock('~/models/columnModel')
 jest.mock('~/models/cardModel')
 jest.mock('~/models/labelModel')
 jest.mock('~/models/invitationModel')
+jest.mock('randomcolor')
 
 describe('boardService.createNew', () => {
     it('Creates a slug from the title and passes it to boardModel.createNew, then fetches the full board using the inserted ID', async () => {
+        randomColor.mockReturnValue('#123456')
         const userId = 'user123'
         const reqBody = { title: 'Dự Án Trello', type: 'public' }
 
@@ -22,7 +25,8 @@ describe('boardService.createNew', () => {
             _id: 'newBoardId456',
             title: 'Dự Án Trello',
             type: 'public',
-            slug: 'du-an-trello'
+            slug: 'du-an-trello',
+            bgColor: '#123456'
         })
 
         const result = await boardService.createNew(userId, reqBody)
@@ -30,7 +34,8 @@ describe('boardService.createNew', () => {
         expect(boardModel.createNew).toHaveBeenCalledWith(userId, {
             title: 'Dự Án Trello',
             type: 'public',
-            slug: 'du-an-trello'
+            slug: 'du-an-trello',
+            bgColor: '#123456'
         })
 
         expect(boardModel.findOneById).toHaveBeenCalledWith('newBoardId456')
@@ -39,7 +44,8 @@ describe('boardService.createNew', () => {
             _id: 'newBoardId456',
             title: 'Dự Án Trello',
             type: 'public',
-            slug: 'du-an-trello'
+            slug: 'du-an-trello',
+            bgColor: '#123456'
         })
     })
 })

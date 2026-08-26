@@ -8,11 +8,13 @@ import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { cloneDeep } from 'lodash'
 import { DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
+import randomColor from 'randomcolor'
 
 const createNew = async (userId, reqBody) => {
     try {
         const newBoard = {
             ...reqBody,
+            bgColor: randomColor(),
             slug: slugify(reqBody.title)
         }
 
