@@ -21,5 +21,11 @@ Router.route('/:id')
     authz.hasBoardAccess(authz.resolvers.fromCardParamsId),
     cardController.update
   )
+  .delete(
+    authn.isAuthenticated,
+    cardValidation.deleteItem,
+    authz.hasBoardAccess(authz.resolvers.fromCardParamsId),
+    cardController.deleteItem
+  )
 
 export const cardRoute = Router
