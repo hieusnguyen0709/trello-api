@@ -346,3 +346,58 @@ describe('cardService.update', () => {
         })
     })
 })
+
+describe('cardService.deleteItem', () => {
+    it('Delete card and remove its ID from the parent column order', async () => {
+        const targetCard = {
+            _id: 'card1',
+            columnId: 'col1',
+            title: 'Card 1'
+        }
+
+        cardModel.findOneById.mockResolvedValue(targetCard)
+        columnModel.pullCardOrderIds.mockResolvedValue({})
+        cardModel.deleteOneById.mockResolvedValue({ deletedCount: 1 })
+
+        const result = await cardService.deleteItem('card1')
+
+        expect(cardModel.findOneById).toHaveBeenCalledWith('card1')
+        expect(columnModel.pullCardOrderIds).toHaveBeenCalledWith(targetCard)
+        expect(cardModel.deleteOneById).toHaveBeenCalledWith('card1')
+        expect(result).toEqual({
+            deleteResult: 'Card deleted successfully!'
+        })
+    })
+
+    it('Throw error when the card does not exist', async () => {
+        cardModel.findOneById.mockResolvedValue(null)
+
+        await expect(
+            cardService.deleteItem('card1')
+        ).rejects.toThrow('Card not found!')
+
+        expect(columnModel.pullCardOrderIds).not.toHaveBeenCalled()
+        expect(cardModel.deleteOneById).not.toHaveBeenCalled()
+    })
+
+    it('Throw error when deleting the card fails', async () => {
+        const targetCard = {
+            _id: 'card1',
+            columnId: 'col1',
+            title: 'Card 1'
+        }
+
+        const error = new Error('Delete card failed')
+
+        cardModel.findOneById.mockResolvedValue(targetCard)
+        columnModel.pullCardOrderIds.mockResolvedValue({})
+        cardModel.deleteOneById.mockRejectedValue(error)
+
+        await expect(
+            cardService.deleteItem('card1')
+        ).rejects.toThrow('Delete card failed')
+
+        expect(columnModel.pullCardOrderIds).toHaveBeenCalledWith(targetCard)
+        expect(cardModel.deleteOneById).toHaveBeenCalledWith('card1')
+    })
+})
