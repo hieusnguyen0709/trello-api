@@ -129,7 +129,26 @@ const update = async (cardId, reqBody, cardCoverFile, cardAttachmentFiles, userI
   }
 }
 
+const deleteItem = async (cardId) => {
+  try {
+    const targetCard = await cardModel.findOneById(cardId)
+
+    if (!targetCard) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Card not found!')
+    }
+
+    // Gỡ card ra khỏi mảng cardOrderIds của column, rồi mới xoá card
+    await columnModel.pullCardOrderIds(targetCard)
+    await cardModel.deleteOneById(cardId)
+
+    return { deleteResult: 'Card deleted successfully!' }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const cardService = {
   createNew,
-  update
+  update,
+  deleteItem
 }
