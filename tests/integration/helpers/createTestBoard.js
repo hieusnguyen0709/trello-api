@@ -5,6 +5,7 @@ export const createTestBoard = async (customData = {}) => {
         title: 'Test Board Title',
         description: 'Test Board Description',
         type: 'public',
+        bgColor: '#000000',
         ownerIds: [],
         memberIds: [],
         columnOrderIds: [],

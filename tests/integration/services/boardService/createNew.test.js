@@ -34,6 +34,8 @@ describe('boardService.createNew (integration)', () => {
         expect(createdBoard.description).toBe(boardData.description)
         expect(createdBoard.type).toBe(boardData.type)
         expect(createdBoard.ownerIds).toContainEqual(testUser._id)
+        expect(createdBoard.bgColor).toBeDefined()
+        expect(createdBoard.bgColor).toMatch(/^#([0-9A-Fa-f]{3}){1,2}$/)
 
         const boardInDatabase = await GET_DB()
             .collection('boards')
@@ -42,5 +44,24 @@ describe('boardService.createNew (integration)', () => {
         expect(boardInDatabase).toBeDefined()
         expect(boardInDatabase._id).toEqual(createdBoard._id)
         expect(boardInDatabase.ownerIds).toContainEqual(testUser._id)
+        expect(boardInDatabase.bgColor).toBe(createdBoard.bgColor)
+    })
+
+    it('Should NOT allow bgColor to be set via request payload (always server-generated)', async () => {
+        const boardData = {
+            title: 'Board With Fake Color',
+            slug: 'board-with-fake-color',
+            description: 'Testing bgColor override attempt',
+            type: BOARD_TYPES.PUBLIC,
+            bgColor: '#000000' // cố tình gửi lên, mong đợi bị bỏ qua/ghi đè
+        }
+
+        const createdBoard = await boardService.createNew(
+            testUser._id.toString(),
+            boardData
+        )
+
+        expect(createdBoard.bgColor).not.toBe('#000000')
+        expect(createdBoard.bgColor).toMatch(/^#([0-9A-Fa-f]{3}){1,2}$/)
     })
 })

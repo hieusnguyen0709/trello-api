@@ -16,6 +16,7 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
     slug: Joi.string().required().min(3).trim().strict(),
     description: Joi.string().required().min(3).max(255).trim().strict(),
     type: Joi.string().valid(BOARD_TYPES.PUBLIC, BOARD_TYPES.PRIVATE).required(),
+    bgColor: Joi.string().trim(),
 
     // Lưu ý các item trong mảng columnOrderIds là ObjectId nên cần thêm pattern cho chuẩn
     columnOrderIds: Joi.array().items(
@@ -39,7 +40,7 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
     _destroy: Joi.boolean().default(false)
 })
 
-const INVALID_UPDATE_FIELDS = ['_id', 'createdAt']
+const INVALID_UPDATE_FIELDS = ['_id', 'createdAt', 'bgColor']
 
 const validateBeforeCreate = async (data) => {
     return await BOARD_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
