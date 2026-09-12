@@ -64,6 +64,7 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
 
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null),
+  archivedAt: Joi.date().timestamp('javascript').default(null),
   _destroy: Joi.boolean().default(false)
 })
 
@@ -431,6 +432,18 @@ const deleteOneById = async (cardId) => {
   }
 }
 
+const getArchivedCardsByColumnId = async (columnId) => {
+  try {
+    return await GET_DB().collection(CARD_COLLECTION_NAME).find({
+      columnId: new ObjectId(columnId),
+      archivedAt: { $ne: null },
+      _destroy: false
+    }).toArray()
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
@@ -451,5 +464,6 @@ export const cardModel = {
   pushLabelIds,
   pullLabelIds,
   deleteManyByBoardId,
-  deleteOneById
+  deleteOneById,
+  getArchivedCardsByColumnId
 }

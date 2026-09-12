@@ -401,3 +401,74 @@ describe('cardService.deleteItem', () => {
         expect(cardModel.deleteOneById).toHaveBeenCalledWith('card1')
     })
 })
+
+describe('cardService.archive', () => {
+    it('Call cardModel.update with archivedAt and updatedAt timestamps', async () => {
+        const mockUpdatedCard = { _id: 'card1', archivedAt: 1234567890, updatedAt: 1234567890 }
+        cardModel.update.mockResolvedValue(mockUpdatedCard)
+
+        const result = await cardService.archive('card1')
+
+        expect(cardModel.update).toHaveBeenCalledWith('card1', expect.objectContaining({
+            archivedAt: expect.any(Number),
+            updatedAt: expect.any(Number)
+        }))
+        expect(result).toEqual(mockUpdatedCard)
+    })
+
+    it('Throw an error when cardModel.update fails', async () => {
+        cardModel.update.mockRejectedValue(new Error('Database error'))
+
+        await expect(cardService.archive('card1')).rejects.toThrow('Database error')
+    })
+})
+
+describe('cardService.restore', () => {
+    it('Call cardModel.update with archivedAt set to null', async () => {
+        const mockUpdatedCard = { _id: 'card1', archivedAt: null, updatedAt: 1234567890 }
+        cardModel.update.mockResolvedValue(mockUpdatedCard)
+
+        const result = await cardService.restore('card1')
+
+        expect(cardModel.update).toHaveBeenCalledWith('card1', expect.objectContaining({
+            archivedAt: null,
+            updatedAt: expect.any(Number)
+        }))
+        expect(result).toEqual(mockUpdatedCard)
+    })
+
+    it('Throw an error when cardModel.update fails', async () => {
+        cardModel.update.mockRejectedValue(new Error('Database error'))
+
+        await expect(cardService.restore('card1')).rejects.toThrow('Database error')
+    })
+})
+
+describe('cardService.getArchivedCards', () => {
+    it('Return the list of archived cards for a given columnId', async () => {
+        const mockArchivedCards = [
+            { _id: 'card1', columnId: 'col1', archivedAt: 1234567890 },
+            { _id: 'card2', columnId: 'col1', archivedAt: 1234567891 }
+        ]
+        cardModel.getArchivedCardsByColumnId.mockResolvedValue(mockArchivedCards)
+
+        const result = await cardService.getArchivedCards('col1')
+
+        expect(cardModel.getArchivedCardsByColumnId).toHaveBeenCalledWith('col1')
+        expect(result).toEqual(mockArchivedCards)
+    })
+
+    it('Return an empty array when there are no archived cards', async () => {
+        cardModel.getArchivedCardsByColumnId.mockResolvedValue([])
+
+        const result = await cardService.getArchivedCards('col1')
+
+        expect(result).toEqual([])
+    })
+
+    it('Throw an error when cardModel.getArchivedCardsByColumnId fails', async () => {
+        cardModel.getArchivedCardsByColumnId.mockRejectedValue(new Error('Database error'))
+
+        await expect(cardService.getArchivedCards('col1')).rejects.toThrow('Database error')
+    })
+})

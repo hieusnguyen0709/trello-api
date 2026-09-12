@@ -147,8 +147,50 @@ const deleteItem = async (cardId) => {
   }
 }
 
+const archive = async (cardId) => {
+  try {
+    const updateData = {
+      archivedAt: Date.now(),
+      updatedAt: Date.now()
+    }
+
+    const updatedCard = await cardModel.update(cardId, updateData)
+
+    return updatedCard
+  } catch (error) {
+    throw error
+  }
+}
+
+const restore = async (cardId) => {
+  try {
+    const updateData = {
+      archivedAt: null,
+      updatedAt: Date.now()
+    }
+
+    const updatedCard = await cardModel.update(cardId, updateData)
+
+    return updatedCard
+  } catch (error) {
+    throw error
+  }
+}
+
+const getArchivedCards = async (columnId) => {
+  try {
+    const archivedCards = await cardModel.getArchivedCardsByColumnId(columnId)
+    return archivedCards
+  } catch (error) {
+    throw error
+  }
+}
+
 export const cardService = {
   createNew,
   update,
-  deleteItem
+  deleteItem,
+  archive,
+  restore,
+  getArchivedCards
 }
