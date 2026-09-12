@@ -42,8 +42,41 @@ const deleteItem = async (req, res, next) => {
   }
 }
 
+const archive = async (req, res, next) => {
+  try {
+    const cardId = req.params.id
+    const result = await cardService.archive(cardId)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const restore = async (req, res, next) => {
+  try {
+    const cardId = req.params.id
+    const result = await cardService.restore(cardId)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getArchivedCards = async (req, res, next) => {
+  try {
+    const { columnId } = req.params
+    const result = await cardService.getArchivedCards(columnId)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const cardController = {
   createNew,
   update,
-  deleteItem
+  deleteItem,
+  archive,
+  restore,
+  getArchivedCards
 }

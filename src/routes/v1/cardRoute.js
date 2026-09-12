@@ -28,4 +28,13 @@ Router.route('/:id')
     cardController.deleteItem
   )
 
+Router.route('/:id/archive')
+  .put(authn.isAuthenticated, cardValidation.archive, authz.hasBoardAccess(authz.resolvers.fromCardParamsId), cardController.archive)
+
+Router.route('/:id/restore')
+  .put(authn.isAuthenticated, cardValidation.restore, authz.hasBoardAccess(authz.resolvers.fromCardParamsId), cardController.restore)
+
+Router.route('/:columnId/archivedCards')
+  .get(authn.isAuthenticated, cardValidation.getArchivedCards, cardController.getArchivedCards)
+
 export const cardRoute = Router

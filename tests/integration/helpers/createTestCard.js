@@ -14,6 +14,7 @@ export const createTestCard = async (customData = {}) => {
         checklist: [],
         labelIds: [],
         _destroy: false,
+        archivedAt: null,
         createdAt: Date.now(),
         updatedAt: null
     }
