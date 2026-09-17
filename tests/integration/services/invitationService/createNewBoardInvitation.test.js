@@ -102,4 +102,48 @@ describe('invitationService.createNewBoardInvitation - Integration Test', () => 
             invitationService.createNewBoardInvitation(reqBody, fakeInviterId)
         ).rejects.toThrow('Inviter, Invitee or Board not found!')
     })
+
+    it('Throw 400 when inviter tries to invite themselves', async () => {
+        const reqBody = {
+            inviteeEmail: inviter.email,
+            boardId: testBoard._id.toString()
+        }
+
+        await expect(
+            invitationService.createNewBoardInvitation(reqBody, inviter._id.toString())
+        ).rejects.toThrow('You cannot invite yourself!')
+    })
+
+    it('Throw 400 when invitee is already a member of the board', async () => {
+        const memberBoard = await createTestBoard({
+            ownerIds: [inviter._id],
+            memberIds: [invitee._id]
+        })
+
+        const reqBody = {
+            inviteeEmail: invitee.email,
+            boardId: memberBoard._id.toString()
+        }
+
+        await expect(
+            invitationService.createNewBoardInvitation(reqBody, inviter._id.toString())
+        ).rejects.toThrow('This user is already a member of the board!')
+
+        await GET_DB().collection('boards').deleteOne({ _id: memberBoard._id })
+    })
+
+    it('Throw 400 when a pending invitation already exists for the same invitee and board', async () => {
+        const reqBody = {
+            inviteeEmail: invitee.email,
+            boardId: testBoard._id.toString()
+        }
+
+        // Tạo lời mời đầu tiên - thành công
+        await invitationService.createNewBoardInvitation(reqBody, inviter._id.toString())
+
+        // Mời lần 2 cho cùng invitee + board khi lời mời đầu vẫn PENDING
+        await expect(
+            invitationService.createNewBoardInvitation(reqBody, inviter._id.toString())
+        ).rejects.toThrow('You\'ve already invited this user. Waiting for their response!')
+    })
 })

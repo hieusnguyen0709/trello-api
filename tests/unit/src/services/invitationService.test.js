@@ -14,7 +14,7 @@ describe('invitationService.createNewBoardInvitation', () => {
     it('Throw a 404 ApiError when inviter, invitee, or board is not found', async () => {
         userModel.findOneById.mockResolvedValue(null)
         userModel.findOneByEmail.mockResolvedValue({ _id: fakeObjectId('invitee1') })
-        boardModel.findOneById.mockResolvedValue({ _id: fakeObjectId('board1') })
+        boardModel.findOneById.mockResolvedValue({ _id: fakeObjectId('board1'), ownerIds: [], memberIds: [] })
 
         await expect(
             invitationService.createNewBoardInvitation({ inviteeEmail: 'a@b.com', boardId: 'board1' }, 'inviter1')
@@ -24,7 +24,7 @@ describe('invitationService.createNewBoardInvitation', () => {
     it('Convert inviteeId and boardId to strings before saving the invitation', async () => {
         userModel.findOneById.mockResolvedValue({ _id: fakeObjectId('inviter1'), email: 'inviter@test.com' })
         userModel.findOneByEmail.mockResolvedValue({ _id: fakeObjectId('invitee1'), email: 'invitee@test.com' })
-        boardModel.findOneById.mockResolvedValue({ _id: fakeObjectId('board1'), title: 'Trello Board' })
+        boardModel.findOneById.mockResolvedValue({ _id: fakeObjectId('board1'), title: 'Trello Board', ownerIds: [], memberIds: [] })
         invitationModel.createNewBoardInvitation.mockResolvedValue({ insertedId: 'invite1' })
         invitationModel.findOneById.mockResolvedValue({ _id: 'invite1' })
 
@@ -41,7 +41,7 @@ describe('invitationService.createNewBoardInvitation', () => {
     it('Return the invitation merged with the full board and pickUser-filtered inviter and invitee', async () => {
         const inviter = { _id: fakeObjectId('inviter1'), email: 'inviter@test.com', password: 'secret-hash' }
         const invitee = { _id: fakeObjectId('invitee1'), email: 'invitee@test.com', password: 'secret-hash' }
-        const board = { _id: fakeObjectId('board1'), title: 'Trello Board' }
+        const board = { _id: fakeObjectId('board1'), title: 'Trello Board', ownerIds: [], memberIds: [] }
 
         userModel.findOneById.mockResolvedValue(inviter)
         userModel.findOneByEmail.mockResolvedValue(invitee)
@@ -55,6 +55,43 @@ describe('invitationService.createNewBoardInvitation', () => {
         expect(result.inviter).not.toHaveProperty('password')
         expect(result.invitee).not.toHaveProperty('password')
         expect(result._id).toBe('invite1')
+    })
+
+    it('Throw a 400 ApiError when inviter tries to invite themselves', async () => {
+        const sameUser = { _id: fakeObjectId('user1'), email: 'user1@test.com' }
+        userModel.findOneById.mockResolvedValue(sameUser)
+        userModel.findOneByEmail.mockResolvedValue(sameUser)
+        boardModel.findOneById.mockResolvedValue({ _id: fakeObjectId('board1'), ownerIds: [], memberIds: [] })
+
+        await expect(
+            invitationService.createNewBoardInvitation({ inviteeEmail: 'user1@test.com', boardId: 'board1' }, 'user1')
+        ).rejects.toThrow('You cannot invite yourself!')
+    })
+
+    it('Throw a 400 ApiError when invitee is already a member of the board', async () => {
+        const invitee = { _id: fakeObjectId('invitee1'), email: 'invitee@test.com' }
+        userModel.findOneById.mockResolvedValue({ _id: fakeObjectId('inviter1') })
+        userModel.findOneByEmail.mockResolvedValue(invitee)
+        boardModel.findOneById.mockResolvedValue({
+            _id: fakeObjectId('board1'),
+            ownerIds: [],
+            memberIds: [fakeObjectId('invitee1')]
+        })
+
+        await expect(
+            invitationService.createNewBoardInvitation({ inviteeEmail: 'invitee@test.com', boardId: 'board1' }, 'inviter1')
+        ).rejects.toThrow('This user is already a member of the board!')
+    })
+
+    it('Throw a 400 ApiError when a pending invitation already exists', async () => {
+        userModel.findOneById.mockResolvedValue({ _id: fakeObjectId('inviter1') })
+        userModel.findOneByEmail.mockResolvedValue({ _id: fakeObjectId('invitee1'), email: 'invitee@test.com' })
+        boardModel.findOneById.mockResolvedValue({ _id: fakeObjectId('board1'), ownerIds: [], memberIds: [] })
+        invitationModel.findPendingBoardInvitation.mockResolvedValue({ _id: 'existing-invite' })
+
+        await expect(
+            invitationService.createNewBoardInvitation({ inviteeEmail: 'invitee@test.com', boardId: 'board1' }, 'inviter1')
+        ).rejects.toThrow('You\'ve already invited this user. Waiting for their response!')
     })
 })
 
