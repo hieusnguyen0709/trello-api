@@ -20,6 +20,29 @@ const createNewBoardInvitation = async (reqBody, inviterId) => {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Inviter, Invitee or Board not found!')
     }
 
+    // Không cho mời chính mình
+    if (invitee._id.toString() === inviterId) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'You cannot invite yourself!')
+    }
+
+    // Không cho mời người đã là owner hoặc member của board
+    const isAlreadyMember =
+      board.ownerIds.map(id => id.toString()).includes(invitee._id.toString()) ||
+      board.memberIds.map(id => id.toString()).includes(invitee._id.toString())
+
+    if (isAlreadyMember) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'This user is already a member of the board!')
+    }
+
+    // Chặn mời trùng khi còn 1 lời mời PENDING chưa được xử lý
+    const existingPendingInvitation = await invitationModel.findPendingBoardInvitation(
+      invitee._id.toString(),
+      board._id.toString()
+    )
+    if (existingPendingInvitation) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'You\'ve already invited this user. Waiting for their response!')
+    }
+
     // Tạo data cần thiết để lưu vào trong DB
     // Có thể thử bỏ hoặc làm sai lệch type, boardInvitation, status để test xem Model validate ok chưa
     const newInvitationData = {
@@ -85,7 +108,7 @@ const updateBoardInvitation = async (userId, invitationId, status) => {
     // đã là owner hoặc member của board rồi thì trả về thông báo lỗi luôn.
     // Note: 2 mảng memberIds và ownerIds của board nó đang là kiểu dữ liệu ObjectId
     // nên cho nó về String hết luôn để check
-    const boardOwnerAndMemberIds = [...getBoard.ownerIds, ...getBoard.memberIds].toString()
+    const boardOwnerAndMemberIds = [...getBoard.ownerIds, ...getBoard.memberIds].map(id => id.toString())
     if (status === BOARD_INVITATION_STATUS.ACCEPTED && boardOwnerAndMemberIds.includes(userId)) {
         throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'You are already a member of this board.')
     }
